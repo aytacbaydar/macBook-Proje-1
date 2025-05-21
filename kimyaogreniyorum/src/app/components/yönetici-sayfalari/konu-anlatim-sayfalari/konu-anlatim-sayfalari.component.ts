@@ -127,15 +127,22 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
           this.canvas.renderAll();
           
           // Canvas'ı PDF'in üzerine yerleştir
+          const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
           const canvasEl = document.querySelector('.canvas-container canvas') as HTMLCanvasElement;
-          if (canvasEl) {
+          if (canvasEl && canvasContainer) {
             canvasEl.style.position = 'absolute';
             canvasEl.style.top = '0';
             canvasEl.style.left = '0';
-            canvasEl.style.pointerEvents = this.cizilebilir ? 'auto' : 'none';
+            canvasEl.style.pointerEvents = 'auto'; // Her zaman çizim yapılabilir olsun
+            canvasContainer.style.pointerEvents = 'auto'; // Container da etkin olsun
           }
         }
       }
+      
+      // Çizim modunu etkinleştir
+      this.cizilebilir = true;
+      this.canvas.isDrawingMode = true;
+      this.ayarlaKalemOzellikleri();
     }, 500);
   }
 
