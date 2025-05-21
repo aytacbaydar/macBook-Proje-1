@@ -72,7 +72,7 @@
       <button (click)="optimizeEtVeYukle()" class="btn-optimize">Optimize Et ve Yükle</button>
     </div>
 
-    <div *ngIf="pdfYuklendi" class="pdf-container">
+    <div *ngIf="pdfYuklendi" class="pdf-container" [class.tam-ekran]="tamEkranModu">
       <pdf-viewer
         [src]="pdfSrc"
         [page]="currentPage"
