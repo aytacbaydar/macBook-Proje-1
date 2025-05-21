@@ -1,4 +1,3 @@
-
 <div class="konu-anlatim-container">
   <h2 class="baslik">Konu Anlatım Sayfası</h2>
 
@@ -14,12 +13,18 @@
         {{ cizilebilir ? 'Çizimi Durdur' : 'Çizimi Başlat' }}
       </button>
       <button (click)="temizleCanvas()" class="btn-arac">Temizle</button>
-      
+      <button (click)="silgiModunuAc()" class="btn-arac" [class.aktif]="silgiModu">
+        <span class="ikon-silgi">🧹</span> Silgi
+      </button>
+      <button (click)="kalemModunuAc()" class="btn-arac" [class.aktif]="!silgiModu">
+        <span class="ikon-kalem">✏️</span> Kalem
+      </button>
+
       <div class="renk-secici">
         <label for="renk">Renk:</label>
         <input type="color" id="renk" [value]="kalemRengi" (change)="renkDegistir($event)">
       </div>
-      
+
       <div class="kalinlik-secici">
         <label for="kalinlik">Kalınlık:</label>
         <input type="range" id="kalinlik" min="1" max="20" [value]="kalemKalinligi" (change)="kalinlikDegistir($event)">
@@ -44,10 +49,21 @@
   </div>
 
   <div class="calisma-alani">
-    <div *ngIf="!pdfYuklendi" class="pdf-yukle-mesaj">
+    <div *ngIf="!pdfYuklendi && !dosyaBoyutuUyarisi" class="pdf-yukle-mesaj">
       Lütfen bir PDF dosyası seçin
     </div>
-    
+
+    <div *ngIf="dosyaBoyutuUyarisi" class="buyuk-dosya-uyarisi">
+      <p>Seçtiğiniz dosya 16 MB'tan büyük. Büyük dosyalar yavaş yüklenebilir veya performans sorunlarına neden olabilir.</p>
+      <p>Öneriler:</p>
+      <ul>
+        <li>Daha küçük bir PDF dosyası kullanın</li>
+        <li>PDF'i daha düşük çözünürlükte kaydederek sıkıştırın</li>
+        <li>PDF'i bölümlere ayırıp daha küçük dosyalar halinde yükleyin</li>
+      </ul>
+      <button (click)="optimizeEtVeYukle()" class="btn-optimize">Optimize Et ve Yükle</button>
+    </div>
+
     <div *ngIf="pdfYuklendi" class="pdf-container">
       <pdf-viewer
         [src]="pdfSrc"
@@ -56,13 +72,54 @@
         [original-size]="false"
         [fit-to-page]="true"
         [show-all]="false"
-        (after-load-complete)="pdfYuklendi($event)"
-        style="display: block;"
+        [autoresize]="true"
+        [show-borders]="false"
+        [external-link-target]="'blank'"
+        (after-load-complete)="pdfYuklendiHandler($event)"
+        style="display: block; width: 100%; height: 100%;"
       ></pdf-viewer>
-      
+
       <div class="canvas-container">
         <canvas #canvas></canvas>
       </div>
     </div>
   </div>
 </div>
+
+<style>
+.pdf-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 250px);
+  margin: 0 auto;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  overflow: hidden;
+
+  ::ng-deep pdf-viewer {
+    display: block !important;
+    height: 100% !important;
+    width: 100% !important;
+    background-color: #f9f9f9;
+  }
+}
+
+.canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
+
+/* PDF görüntüleyici etkin olduğunda canvas için pointer-events'i auto yap */
+.cizilebilir .canvas-container {
+  pointer-events: auto !important;
+}
+</style>

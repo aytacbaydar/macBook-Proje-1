@@ -1,4 +1,3 @@
-
 .konu-anlatim-container {
   padding: 20px;
   max-width: 1200px;
@@ -36,7 +35,7 @@
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
-  
+
   &:hover {
     background-color: #3367d6;
   }
@@ -65,16 +64,66 @@
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
-  
+
   &:hover {
     background-color: #2e8b47;
+  }
+
+  &.aktif {
+    background-color: #27803f;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  }
+
+  .ikon-silgi, .ikon-kalem {
+    margin-right: 5px;
+    font-size: 16px;
   }
 }
 
 .renk-secici, .kalinlik-secici {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
+}
+
+.renk-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+  
+  &:hover {
+    transform: scale(1.1);
+  }
+  
+  &.aktif {
+    border-color: #333;
+    transform: scale(1.1);
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+  }
+  
+  &.kirmizi {
+    background-color: #FF0000;
+  }
+  
+  &.mavi {
+    background-color: #0000FF;
+  }
+  
+  &.siyah {
+    background-color: #000000;
+  }
+}
+
+.renk-secici-input {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
 }
 
 .sayfa-kontrolleri {
@@ -91,11 +140,11 @@
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
-  
+
   &:hover {
     background-color: #e6a700;
   }
-  
+
   &:disabled {
     background-color: #ccc;
     cursor: not-allowed;
@@ -128,11 +177,11 @@
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
-  
+
   &:hover {
     background-color: #d33426;
   }
-  
+
   &:disabled {
     background-color: #ccc;
     cursor: not-allowed;
@@ -141,8 +190,11 @@
 
 .calisma-alani {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   margin-top: 20px;
+  width: 100%;
+  min-height: 600px;
 }
 
 .pdf-yukle-mesaj {
@@ -155,13 +207,56 @@
   font-size: 18px;
 }
 
+.buyuk-dosya-uyarisi {
+  padding: 30px;
+  text-align: left;
+  background-color: #fff3e0;
+  border: 2px solid #ffcc80;
+  border-radius: 8px;
+  color: #e65100;
+  font-size: 16px;
+  max-width: 800px;
+  margin: 0 auto;
+
+  p {
+    margin-bottom: 15px;
+  }
+
+  ul {
+    margin-bottom: 20px;
+    padding-left: 20px;
+  }
+
+  .btn-optimize {
+    padding: 10px 20px;
+    background-color: #ff9800;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: #f57c00;
+    }
+  }
+}
+
 .pdf-container {
   position: relative;
   width: 100%;
-  height: 800px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  max-width: 800px;
+  min-height: 600px;
+  margin: 0 auto;
+  border: 1px solid #ccc;
+  border-radius: 5px;
   overflow: hidden;
+
+  ::ng-deep pdf-viewer {
+    display: block !important;
+    height: 600px !important;
+  }
 }
 
 .canvas-container {
@@ -171,7 +266,7 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  
+
   canvas {
     width: 100%;
     height: 100%;
@@ -188,7 +283,7 @@
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .kaydetme-bolumu {
     margin-left: 0;
   }
