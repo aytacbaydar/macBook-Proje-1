@@ -87,7 +87,9 @@
         style="display: block; width: 100%; height: 100%; transition: transform 0.3s ease;"
       ></pdf-viewer>
 
-      <div class="canvas-container">
+      <div class="canvas-container" 
+           [class.kalem-aktif]="!silgiModu && cizilebilir"
+           [class.silgi-aktif]="silgiModu && cizilebilir">
         <canvas #canvas></canvas>
       </div>
     </div>
