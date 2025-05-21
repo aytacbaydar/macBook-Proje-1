@@ -42,22 +42,45 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     // Kısa bir gecikme ekleyerek canvas'ın düzgün oluşmasını sağlıyoruz
     setTimeout(() => {
-      this.canvas = new fabric.Canvas(this.canvasElement.nativeElement, {
-        isDrawingMode: true,
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-      
-      // Kalem ayarlarını yapılandır
-      this.ayarlaKalemOzellikleri();
-      
-      // Canvas boyutunu pencere boyutuna göre ayarla
-      window.addEventListener('resize', () => {
-        this.canvas.setWidth(window.innerWidth);
-        this.canvas.setHeight(window.innerHeight);
-        this.canvas.renderAll();
-      });
-    }, 300);
+      try {
+        this.canvas = new fabric.Canvas(this.canvasElement.nativeElement, {
+          isDrawingMode: true,
+          width: window.innerWidth,
+          height: window.innerHeight,
+          selection: false, // Nesnelerin seçilmesini engelle
+          renderOnAddRemove: true,
+          stateful: false
+        });
+        
+        console.log('Canvas oluşturuldu:', this.canvas);
+        
+        // Kalem ayarlarını yapılandır
+        this.ayarlaKalemOzellikleri();
+        
+        // Canvas boyutunu pencere boyutuna göre ayarla
+        window.addEventListener('resize', () => {
+          if (this.canvas) {
+            this.canvas.setWidth(window.innerWidth);
+            this.canvas.setHeight(window.innerHeight);
+            this.canvas.renderAll();
+          }
+        });
+        
+        // Fabric pencil brush (kalem) özelliklerini geliştir
+        if (this.canvas.freeDrawingBrush) {
+          this.canvas.freeDrawingBrush.color = this.kalemRengi;
+          this.canvas.freeDrawingBrush.width = this.kalemKalinligi;
+          this.canvas.freeDrawingBrush.shadow = null;
+          
+          // Yumuşak çizim için
+          if (this.canvas.freeDrawingBrush instanceof fabric.PencilBrush) {
+            this.canvas.freeDrawingBrush.decimate = 8;
+          }
+        }
+      } catch (error) {
+        console.error('Canvas oluşturma hatası:', error);
+      }
+    }, 500);
   }
   
   // Hızlı renk seçimi için metod
@@ -119,37 +142,67 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       if (this.canvas) {
         const pdfContainer = document.querySelector('.pdf-container');
         if (pdfContainer) {
-          const width = pdfContainer.clientWidth;
-          const height = pdfContainer.clientHeight;
+          const pdfViewerElement = document.querySelector('pdf-viewer') as HTMLElement;
+          const pdfElement = pdfViewerElement.querySelector('.ng2-pdf-viewer-container') as HTMLElement;
           
-          this.canvas.setWidth(width);
-          this.canvas.setHeight(height);
-          
-          // Çizim modunu etkinleştir
-          this.cizilebilir = true;
-          this.canvas.isDrawingMode = true;
-          
-          // Kalem özelliklerini ayarla
-          this.ayarlaKalemOzellikleri();
-          
-          // Canvas'ı PDF'in üzerine yerleştir
-          const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
-          const canvasEl = document.querySelector('.canvas-container canvas') as HTMLCanvasElement;
-          if (canvasEl && canvasContainer) {
-            canvasEl.style.position = 'absolute';
-            canvasEl.style.top = '0';
-            canvasEl.style.left = '0';
-            canvasEl.style.zIndex = '999'; // Üst katmanda olduğundan emin ol
+          if (pdfElement) {
+            const width = pdfElement.clientWidth;
+            const height = pdfElement.clientHeight;
             
-            // Pointer events ayarları için CSS sınıfları kullanılacak
-            canvasContainer.style.pointerEvents = 'auto';
-            canvasEl.style.pointerEvents = 'auto';
+            console.log('PDF boyutları:', width, height);
+            
+            this.canvas.setWidth(width);
+            this.canvas.setHeight(height);
+            
+            // Fabric canvas yeniden başlat
+            this.canvas.dispose();
+            
+            // Yeni canvas oluştur
+            this.canvas = new fabric.Canvas(this.canvasElement.nativeElement, {
+              isDrawingMode: true,
+              width: width,
+              height: height
+            });
+            
+            // Çizim modunu etkinleştir
+            this.cizilebilir = true;
+            this.canvas.isDrawingMode = true;
+            
+            // Kalem özelliklerini ayarla
+            this.ayarlaKalemOzellikleri();
+            
+            // Canvas'ı PDF'in üzerine yerleştir
+            const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
+            if (canvasContainer) {
+              canvasContainer.style.position = 'absolute';
+              canvasContainer.style.top = '0';
+              canvasContainer.style.left = '0';
+              canvasContainer.style.width = width + 'px';
+              canvasContainer.style.height = height + 'px';
+              canvasContainer.style.zIndex = '999';
+              canvasContainer.style.pointerEvents = 'auto';
+            }
+            
+            const canvasEl = document.querySelector('.canvas-container canvas') as HTMLCanvasElement;
+            if (canvasEl) {
+              canvasEl.style.position = 'absolute';
+              canvasEl.style.top = '0';
+              canvasEl.style.left = '0';
+              canvasEl.style.width = width + 'px';
+              canvasEl.style.height = height + 'px';
+              canvasEl.style.zIndex = '999';
+              canvasEl.style.pointerEvents = 'auto';
+              canvasEl.style.cursor = 'crosshair';
+            }
+            
+            // Canvas'ı yenile
+            this.canvas.renderAll();
+            
+            console.log('Canvas hazır, çizim modu:', this.canvas.isDrawingMode);
           }
-          
-          this.canvas.renderAll();
         }
       }
-    }, 500);
+    }, 1000); // Daha uzun bekleme süresi
   }
 
   oncekiSayfa(): void {
