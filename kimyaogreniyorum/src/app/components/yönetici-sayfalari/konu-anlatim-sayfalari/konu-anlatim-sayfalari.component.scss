@@ -8,38 +8,7 @@
 .baslik {
   color: #2c3e50;
   text-align: center;
-  margin-bottom: 30px;
-}
-
-/* PDF container temel stilleri */
-.pdf-container {
-  position: relative;
-  width: 100%;
-  height: calc(100vh - 200px);
-  margin: 0 auto;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  background-color: #f9f9f9;
-
-  ::ng-deep pdf-viewer {
-    display: block !important;
-    height: 100% !important;
-    width: 100% !important;
-    background-color: #ffffff !important;
-  }
-}
-.konu-anlatim-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.baslik {
-  text-align: center;
   margin-bottom: 20px;
-  color: #333;
 }
 
 .kontrol-paneli {
@@ -112,10 +81,10 @@
   }
 }
 
-.renk-secici, .kalinlik-secici {
+.renk-secici {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .renk-btn {
@@ -147,15 +116,6 @@
   &.siyah {
     background-color: #000000;
   }
-}
-
-.renk-secici-input {
-  width: 30px;
-  height: 30px;
-  border: none;
-  background: none;
-  padding: 0;
-  cursor: pointer;
 }
 
 .sayfa-kontrolleri {
@@ -275,6 +235,7 @@
   }
 }
 
+/* Instagram tasarımı tarzında PDF konteyner düzeni */
 .pdf-container {
   position: relative;
   width: 100%;
@@ -283,7 +244,6 @@
   border: 1px solid #ccc;
   border-radius: 5px;
   overflow: hidden;
-  transition: all 0.3s ease;
   background-color: #f0f0f0;
 }
 
@@ -291,65 +251,75 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100vw !important;
+  height: 100vh !important;
   z-index: 1000;
-  margin: 0;
   border: none;
   border-radius: 0;
 }
 
-.pdf-viewer-wrapper {
+.pdf-wrapper {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   z-index: 5;
-
-  ::ng-deep pdf-viewer {
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
-  }
 }
 
-.canvas-container {
+::ng-deep pdf-viewer {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-color: white;
+}
+
+.drawing-canvas {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   z-index: 10;
-  pointer-events: auto !important;
-}
-
-.canvas-container canvas {
-  width: 100% !important;
-  height: 100% !important;
-  pointer-events: auto !important;
-}
-
-/* Kalem ve silgi modları için cursors */
-.kalem-aktif {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>') 0 24, crosshair !important;
-}
-
-.silgi-aktif {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M15 9l-6 6"></path><path d="M9 9l6 6"></path></svg>') 0 24, crosshair !important;
-}
-
-// PDF görüntüleyicinin stillerini düzenle
-::ng-deep .ng2-pdf-viewer-container {
-  position: relative !important;
-  z-index: 1 !important;
-}
-
-/* PDF görüntüleyici kullanılabilir olduğunda canvas'ı etkinleştir */
-.pdf-container.cizilebilir .canvas-container {
   pointer-events: auto;
 }
 
+/* Kalem ve silgi modları için imleç stilleri */
+.kalem-aktif .drawing-canvas {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 0 24, auto;
+}
+
+.silgi-aktif .drawing-canvas {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M15.14 3c-.51 0-1.02.2-1.41.59L2.59 14.73c-.78.77-.78 2.04 0 2.83L5.03 20h7.94l-1.72-1.72-4.47.01-1.41-1.41 8.84-8.84 1.42 1.41 1.72-1.72-5.47-5.47c-.39-.39-.9-.59-1.41-.59M21 19.5c0 .83-.67 1.5-1.5 1.5h-5.25l1.73-1.73 3.52-.01V19.5z"/></svg>') 0 24, auto;
+}
+
+.btn-tam-ekran, .btn-buyut {
+  display: flex;
+  align-items: center;
+  padding: 8px 15px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #2980b9;
+  }
+
+  .ekran-ikonu, .zoom-ikonu {
+    margin-left: 5px;
+    font-size: 16px;
+  }
+}
+
+/* Tam ekran modu için body düzenlemesi */
+body.tam-ekran-aktif {
+  overflow: hidden;
+}
+
+/* Mobil cihazlar için düzenleme */
 @media (max-width: 768px) {
   .kontrol-paneli {
     flex-direction: column;
@@ -358,69 +328,5 @@
 
   .kaydetme-bolumu {
     margin-left: 0;
-  }
-}
-
-.btn-arac, .btn-sayfa, .btn-kaydet, .btn-tam-ekran, .btn-buyut {
-
-  &:hover {
-    background-color: #2e8b47;
-  }
-
-  &.aktif {
-    background-color: #27803f;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-  }
-
-  .ikon-silgi, .ikon-kalem, .ekran-ikonu, .zoom-ikonu {
-    margin-right: 5px;
-    font-size: 16px;
-  }
-}
-
-.btn-tam-ekran, .btn-buyut {
-  display: flex;
-  align-items: center;
-  margin-left: 10px;
-  background-color: #3498db;
-
-  &:hover {
-    background-color: #2980b9;
-  }
-}
-
-// Tam ekran modu için üst paneli gizleme
-.tam-ekran-aktif .kontrol-paneli {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1001;
-  background-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  padding: 10px;
-}
-
-// Tam ekran kontrollerini alttan gösterme
-.tam-ekran-kontroller {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1002;
-  display: flex;
-  background-color: rgba(0, 0, 0, 0.7);
-  padding: 10px 15px;
-  border-radius: 30px;
-
-  button {
-    margin: 0 10px;
-    color: white;
-    background: transparent;
-    border: none;
-
-    &:hover {
-      color: #3498db;
-    }
   }
 }

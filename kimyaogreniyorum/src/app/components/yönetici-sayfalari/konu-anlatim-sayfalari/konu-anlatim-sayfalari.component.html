@@ -1,4 +1,3 @@
-
 <div class="konu-anlatim-container">
   <h2 class="baslik">Konu Anlatım Sayfası</h2>
 
@@ -10,39 +9,32 @@
     </div>
 
     <div *ngIf="pdfYuklendi" class="cizim-araclari">
-      <button (click)="toggleCizim()" class="btn-arac">
-        {{ cizilebilir ? 'Çizimi Durdur' : 'Çizimi Başlat' }}
-      </button>
-      <button (click)="temizleCanvas()" class="btn-arac">Temizle</button>
-      <button (click)="silgiModunuAc()" class="btn-arac" [class.aktif]="silgiModu">
-        <span class="ikon-silgi">🧹</span> Silgi
-      </button>
+      <div class="renk-secici">
+        <button (click)="hizliRenkSec('#FF0000')" class="renk-btn kirmizi" [class.aktif]="kalemRengi === '#FF0000'"></button>
+        <button (click)="hizliRenkSec('#0000FF')" class="renk-btn mavi" [class.aktif]="kalemRengi === '#0000FF'"></button>
+        <button (click)="hizliRenkSec('#000000')" class="renk-btn siyah" [class.aktif]="kalemRengi === '#000000'"></button>
+      </div>
+
       <button (click)="kalemModunuAc()" class="btn-arac" [class.aktif]="!silgiModu">
         <span class="ikon-kalem">✏️</span> Kalem
       </button>
-
-      <div class="renk-secici">
-        <label for="renk">Renk:</label>
-        <input type="color" id="renk" [value]="kalemRengi" (change)="renkDegistir($event)">
-      </div>
-
-      <div class="kalinlik-secici">
-        <label for="kalinlik">Kalınlık:</label>
-        <input type="range" id="kalinlik" min="1" max="20" [value]="kalemKalinligi" (change)="kalinlikDegistir($event)">
-      </div>
+      <button (click)="silgiModunuAc()" class="btn-arac" [class.aktif]="silgiModu">
+        <span class="ikon-silgi">🧹</span> Silgi
+      </button>
+      <button (click)="temizleCanvas()" class="btn-arac">Temizle</button>
     </div>
 
     <div *ngIf="pdfYuklendi" class="sayfa-kontrolleri">
-      <button (click)="oncekiSayfa()" [disabled]="currentPage === 1" class="btn-sayfa">Önceki Sayfa</button>
+      <button (click)="oncekiSayfa()" [disabled]="currentPage === 1" class="btn-sayfa">Önceki</button>
       <span class="sayfa-bilgisi">{{ currentPage }} / {{ totalPages }}</span>
-      <button (click)="sonrakiSayfa()" [disabled]="currentPage === totalPages" class="btn-sayfa">Sonraki Sayfa</button>
-      <button (click)="toggleTamEkran()" class="btn-tam-ekran">
-        <span>{{ tamEkranModu ? 'Tam Ekrandan Çık' : 'Tam Ekran' }}</span>
-        <i class="ekran-ikonu">{{ tamEkranModu ? '⬇️' : '⬆️' }}</i>
-      </button>
+      <button (click)="sonrakiSayfa()" [disabled]="currentPage === totalPages" class="btn-sayfa">Sonraki</button>
       <button (click)="pdfBuyut()" class="btn-buyut">
         <span>Büyüt</span>
-        <i class="zoom-ikonu">🔍+</i>
+        <i class="zoom-ikonu">🔍</i>
+      </button>
+      <button (click)="toggleTamEkran()" class="btn-tam-ekran">
+        <span>{{ tamEkranModu ? 'Normal Ekran' : 'Tam Ekran' }}</span>
+        <i class="ekran-ikonu">{{ tamEkranModu ? '⬇️' : '⬆️' }}</i>
       </button>
     </div>
 
@@ -74,32 +66,24 @@
     </div>
 
     <div *ngIf="pdfYuklendi" class="pdf-container" [class.tam-ekran]="tamEkranModu">
-      <!-- Önce PDF görüntüleyici -->
-      <div class="pdf-viewer-wrapper">
+      <div class="pdf-wrapper">
         <pdf-viewer
           [src]="pdfSrc"
-          [page]="currentPage"
           [render-text]="true"
           [original-size]="false"
           [fit-to-page]="true"
           [show-all]="false"
           [autoresize]="true"
+          [page]="currentPage"
           [show-borders]="false"
           [external-link-target]="'blank'"
           (after-load-complete)="pdfYuklendiHandler($event)"
         ></pdf-viewer>
       </div>
-
-      <!-- Sonra Canvas container -->
-      <div class="canvas-container" 
-           [class.kalem-aktif]="!silgiModu && cizilebilir"
-           [class.silgi-aktif]="silgiModu && cizilebilir">
-        <canvas #canvas></canvas>
-      </div>
+      <canvas #canvas class="drawing-canvas"></canvas>
     </div>
   </div>
 </div>
-
 <style>
 .pdf-container {
   position: relative;
