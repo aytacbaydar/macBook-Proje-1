@@ -1,5 +1,4 @@
-
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, HostListener } from '@angular/core';
 import * as fabric from 'fabric';
 import { FormsModule } from '@angular/forms';
 import { PdfViewerModule } from 'ng2-pdf-viewer';
@@ -13,7 +12,7 @@ import { NgIf, NgFor } from '@angular/common';
   imports: [FormsModule, PdfViewerModule, NgIf, NgFor]
 })
 export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
-  @ViewChild('canvas') canvasElement!: ElementRef;
+  @ViewChild('canvas') canvasElement!: ElementRef<HTMLCanvasElement>;
   pdfSrc: string = '';
   secilenPDF: string = '';
   pdfYuklendi: boolean = false;
@@ -37,64 +36,37 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   constructor() { }
 
   ngOnInit(): void {
+    // PDF container sınıfını ekleyerek kalem modunu aktifleştir
+    document.body.classList.add('kalem-aktif');
   }
 
   ngAfterViewInit(): void {
-    // Kısa bir gecikme ekleyerek canvas'ın düzgün oluşmasını sağlıyoruz
-    setTimeout(() => {
-      try {
-        this.canvas = new fabric.Canvas(this.canvasElement.nativeElement, {
-          isDrawingMode: true,
-          width: window.innerWidth,
-          height: window.innerHeight,
-          selection: false, // Nesnelerin seçilmesini engelle
-          renderOnAddRemove: true,
-          stateful: false
-        });
-        
-        console.log('Canvas oluşturuldu:', this.canvas);
-        
-        // Kalem ayarlarını yapılandır
-        this.ayarlaKalemOzellikleri();
-        
-        // Canvas boyutunu pencere boyutuna göre ayarla
-        window.addEventListener('resize', () => {
-          if (this.canvas) {
-            this.canvas.setWidth(window.innerWidth);
-            this.canvas.setHeight(window.innerHeight);
-            this.canvas.renderAll();
-          }
-        });
-        
-        // Fabric pencil brush (kalem) özelliklerini geliştir
-        if (this.canvas.freeDrawingBrush) {
-          this.canvas.freeDrawingBrush.color = this.kalemRengi;
-          this.canvas.freeDrawingBrush.width = this.kalemKalinligi;
-          this.canvas.freeDrawingBrush.shadow = null;
-          
-          // Yumuşak çizim için
-          if (this.canvas.freeDrawingBrush instanceof fabric.PencilBrush) {
-            this.canvas.freeDrawingBrush.decimate = 8;
-          }
-        }
-      } catch (error) {
-        console.error('Canvas oluşturma hatası:', error);
-      }
-    }, 500);
+    // Kalem kurulumu için düzenle (PDF yükleme bekleniyor)
   }
-  
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event) {
+    if (this.canvas && this.pdfYuklendi) {
+      this.canvasBoyutlandir();
+    }
+  }
+
   // Hızlı renk seçimi için metod
   hizliRenkSec(renk: string): void {
     this.kalemRengi = renk;
     this.silgiModu = false; // Renk seçildiğinde silgi modundan çık
     this.ayarlaKalemOzellikleri();
+
+    // Kalem modunu etkinleştir
+    document.body.classList.add('kalem-aktif');
+    document.body.classList.remove('silgi-aktif');
   }
 
   pdfSecildi(event: any): void {
     const file = event.target.files[0];
     if (file) {
       this.secilenPDF = file.name;
-      
+
       // Dosya boyutu kontrolü
       if (file.size > this.maxDosyaBoyutu) {
         this.dosyaBoyutuUyarisi = true;
@@ -103,53 +75,41 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
                Devam etmek için 'Optimize Et ve Yükle' düğmesine tıklayın.`);
         return;
       }
-      
+
       this.pdfDosyasiniYukle(file);
     }
   }
-  
+
   pdfDosyasiniYukle(file: File): void {
     const reader = new FileReader();
     reader.onload = (e: any) => {
       console.log('PDF dosyası yükleniyor...');
-      
+
       try {
         const pdfData = e.target.result;
-        console.log('PDF yüklendi - uzunluk:', pdfData.length);
-        
+
         // PDF veri URL'i ayarla
         this.pdfSrc = pdfData;
-        
+
         // PDF yükleme durumunu güncelle
         this.pdfYuklendi = true;
         this.dosyaBoyutuUyarisi = false;
-        
+
         console.log('PDF görüntüleyici hazırlanıyor...');
-        
-        // Angular'ın değişiklikleri algılaması için bir sonraki döngüde işlem yap
-        setTimeout(() => {
-          // PDF görüntüleme bileşenini kontrol et
-          const pdfViewerElement = document.querySelector('pdf-viewer') as HTMLElement;
-          if (pdfViewerElement) {
-            console.log('PDF viewer elementi bulundu ve ayarlandı');
-          } else {
-            console.error('PDF viewer elementi bulunamadı!');
-          }
-        }, 1000);
       } catch (error) {
         console.error('PDF işleme hatası:', error);
         alert('PDF dosyası işlenirken bir hata oluştu. Lütfen tekrar deneyin.');
       }
     };
-    
+
     reader.onerror = (error) => {
       console.error('PDF yükleme hatası:', error);
       alert('PDF dosyası yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
     };
-    
+
     reader.readAsDataURL(file);
   }
-  
+
   optimizeEtVeYukle(): void {
     const fileInput = document.getElementById('pdf-yukle') as HTMLInputElement;
     if (fileInput.files && fileInput.files[0]) {
@@ -160,85 +120,80 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   pdfYuklendiHandler(event: any): void {
     this.totalPages = event.numPages;
     console.log('PDF sayfa sayısı:', this.totalPages);
-    
-    // Canvas boyutlandırma ve oluşturma işlemi
+
+    // Canvas oluştur
     setTimeout(() => {
-      try {
-        // PDF container'ı bul
-        const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
-        if (!pdfContainer) {
-          console.error('PDF container bulunamadı!');
-          return;
-        }
-        
-        console.log('PDF container bulundu, boyutlar:', pdfContainer.clientWidth, pdfContainer.clientHeight);
-        
-        // Mevcut canvas'ı temizle
-        if (this.canvas) {
-          this.canvas.dispose();
-        }
-        
-        // Canvas boyutlarını ayarla
-        const width = pdfContainer.clientWidth;
-        const height = pdfContainer.clientHeight;
-        
-        // Canvas elementini hazırla
-        const canvasEl = this.canvasElement.nativeElement;
-        canvasEl.width = width;
-        canvasEl.height = height;
-        
-        // Yeni canvas oluştur
-        this.canvas = new fabric.Canvas(canvasEl, {
-          isDrawingMode: true,
-          width: width,
-          height: height,
-          selection: false,
-          renderOnAddRemove: true,
-          stateful: false
-        });
-        
-        console.log('Fabric canvas oluşturuldu:', this.canvas);
-        
-        // Çizim modu açık
-        this.cizilebilir = true;
-        this.canvas.isDrawingMode = true;
-        
-        // Kalem özelliklerini ayarla
-        this.ayarlaKalemOzellikleri();
-        
-        // Canvas container stillerini ayarla
-        const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
-        if (canvasContainer) {
-          // Canvas container görünürlüğünü ve pozisyonunu ayarla
-          canvasContainer.style.position = 'absolute';
-          canvasContainer.style.top = '0';
-          canvasContainer.style.left = '0';
-          canvasContainer.style.width = '100%';
-          canvasContainer.style.height = '100%';
-          canvasContainer.style.zIndex = '20'; // PDF'in üzerinde olmalı
-          canvasContainer.style.pointerEvents = 'auto';
-          
-          // Canvas container içindeki canvas elementlerini ayarla
-          const canvasElements = canvasContainer.querySelectorAll('canvas');
-          canvasElements.forEach((canvas: HTMLCanvasElement) => {
-            canvas.style.position = 'absolute';
-            canvas.style.top = '0';
-            canvas.style.left = '0';
-            canvas.style.width = '100%';
-            canvas.style.height = '100%';
-            canvas.style.pointerEvents = 'auto';
-            canvas.style.touchAction = 'none'; // Dokunmatik cihazlar için
-          });
-        }
-        
-        // Canvas'ı hazır hale getir
-        this.canvas.renderAll();
-        console.log('Canvas hazırlandı ve çizime hazır');
-        
-      } catch (error) {
-        console.error('Canvas oluşturma hatası:', error);
+      this.canvasOlustur();
+    }, 500);
+  }
+
+  canvasOlustur(): void {
+    if (!this.pdfYuklendi) return;
+
+    try {
+      // PDF konteyner boyutlarını al
+      const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
+      if (!pdfContainer) {
+        console.error('PDF container bulunamadı');
+        return;
       }
-    }, 1000);
+
+      const width = pdfContainer.clientWidth;
+      const height = pdfContainer.clientHeight;
+
+      // Canvas elementi boyutlandırma
+      const canvasEl = this.canvasElement.nativeElement;
+      canvasEl.width = width;
+      canvasEl.height = height;
+
+      // Eğer önceki canvas varsa temizle
+      if (this.canvas) {
+        this.canvas.dispose();
+      }
+
+      // Yeni fabric canvas oluştur
+      this.canvas = new fabric.Canvas(canvasEl, {
+        isDrawingMode: true,
+        width: width,
+        height: height,
+        selection: false,
+        renderOnAddRemove: true
+      });
+
+      // Kalem özelliklerini ayarla
+      this.ayarlaKalemOzellikleri();
+
+      console.log('Canvas oluşturuldu:', width, 'x', height);
+
+      // Kalem modunu aktifleştir
+      document.body.classList.add('kalem-aktif');
+      document.body.classList.remove('silgi-aktif');
+
+    } catch (error) {
+      console.error('Canvas oluşturma hatası:', error);
+    }
+  }
+
+  canvasBoyutlandir(): void {
+    if (!this.canvas || !this.pdfYuklendi) return;
+
+    try {
+      // PDF konteyner boyutlarını al
+      const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
+      if (!pdfContainer) return;
+
+      const width = pdfContainer.clientWidth;
+      const height = pdfContainer.clientHeight;
+
+      // Canvas boyutlarını güncelle
+      this.canvas.setWidth(width);
+      this.canvas.setHeight(height);
+      this.canvas.renderAll();
+
+      console.log('Canvas boyutları güncellendi:', width, 'x', height);
+    } catch (error) {
+      console.error('Canvas boyutlandırma hatası:', error);
+    }
   }
 
   oncekiSayfa(): void {
@@ -256,107 +211,67 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   }
 
   temizleCanvas(): void {
-    this.canvas.clear();
+    if (this.canvas) {
+      this.canvas.clear();
+    }
   }
 
   toggleCizim(): void {
     this.cizilebilir = !this.cizilebilir;
-    this.canvas.isDrawingMode = this.cizilebilir;
-    
-    // Canvas container üzerindeki imleç stilini güncelle
-    const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
-    if (canvasContainer) {
-      if (this.cizilebilir) {
-        if (this.silgiModu) {
-          canvasContainer.classList.add('silgi-aktif');
-          canvasContainer.classList.remove('kalem-aktif');
-        } else {
-          canvasContainer.classList.add('kalem-aktif');
-          canvasContainer.classList.remove('silgi-aktif');
-        }
-      } else {
-        canvasContainer.classList.remove('kalem-aktif', 'silgi-aktif');
-      }
+
+    if (this.canvas) {
+      this.canvas.isDrawingMode = this.cizilebilir;
     }
-  }
 
-  renkDegistir(event: any): void {
-    this.kalemRengi = event.target.value;
-    this.ayarlaKalemOzellikleri();
-  }
-
-  kalinlikDegistir(event: any): void {
-    this.kalemKalinligi = Number(event.target.value);
-    this.ayarlaKalemOzellikleri();
+    // İmleç stilini güncelle
+    if (this.cizilebilir) {
+      if (this.silgiModu) {
+        document.body.classList.add('silgi-aktif');
+        document.body.classList.remove('kalem-aktif');
+      } else {
+        document.body.classList.add('kalem-aktif');
+        document.body.classList.remove('silgi-aktif');
+      }
+    } else {
+      document.body.classList.remove('kalem-aktif', 'silgi-aktif');
+    }
   }
 
   ayarlaKalemOzellikleri(): void {
-    if (this.canvas && this.canvas.freeDrawingBrush) {
-      // Kalem rengini ve kalınlığını ayarla
-      this.canvas.freeDrawingBrush.color = this.kalemRengi;
-      this.canvas.freeDrawingBrush.width = this.kalemKalinligi;
-      
-      // Performans ve çizim kalitesi için çizim davranışını ayarla
-      if (this.canvas.freeDrawingBrush instanceof fabric.PencilBrush) {
-        // Daha yumuşak çizimler için ayarlar
-        this.canvas.freeDrawingBrush.decimate = 8;
-      }
-      
-      // Çizim modunu kesinlikle etkinleştir
-      this.cizilebilir = true;
-      this.canvas.isDrawingMode = true;
-      
-      console.log('Kalem ayarları güncellendi:', 
-        'Renk:', this.kalemRengi, 
-        'Kalınlık:', this.kalemKalinligi, 
-        'Çizim Modu:', this.canvas.isDrawingMode);
-      
-      // Canvas container ve tüm canvas elementleri için pointer-events'i aç
-      const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
-      if (canvasContainer) {
-        canvasContainer.style.pointerEvents = 'auto';
-        
-        // Tüm canvas elementleri için de pointer-events'i aç
-        const allCanvasElements = canvasContainer.querySelectorAll('canvas');
-        allCanvasElements.forEach((canvas: HTMLCanvasElement) => {
-          canvas.style.pointerEvents = 'auto';
-        });
-        
-        // İmleç stilini ayarla
-        if (this.silgiModu) {
-          canvasContainer.classList.add('silgi-aktif');
-          canvasContainer.classList.remove('kalem-aktif');
-        } else {
-          canvasContainer.classList.add('kalem-aktif');
-          canvasContainer.classList.remove('silgi-aktif');
-        }
-      }
-    } else {
-      console.error('Canvas veya freeDrawingBrush tanımlanmamış!');
+    if (!this.canvas || !this.canvas.freeDrawingBrush) {
+      console.log('Canvas veya freeDrawingBrush henüz hazır değil');
+      return;
     }
+
+    // Kalem ayarlarını güncelle
+    this.canvas.freeDrawingBrush.color = this.kalemRengi;
+    this.canvas.freeDrawingBrush.width = this.kalemKalinligi;
+
+    // Çizim modunu aktifleştir
+    this.cizilebilir = true;
+    this.canvas.isDrawingMode = true;
+
+    console.log('Kalem ayarları güncellendi:', this.kalemRengi, this.kalemKalinligi);
   }
-  
+
   silgiModunuAc(): void {
     if (!this.silgiModu) {
       this.silgiModu = true;
       // Önceki kalem ayarlarını kaydet
       this.oncekiKalemRengi = this.kalemRengi;
       this.oncekiKalemKalinligi = this.kalemKalinligi;
-      
+
       // Silgi modunu etkinleştir (beyaz kalem)
       this.kalemRengi = '#FFFFFF';
-      this.kalemKalinligi = 15; // Silgi daha kalın olsun
+      this.kalemKalinligi = 15;
       this.ayarlaKalemOzellikleri();
-      
+
       // İmleç stilini güncelle
-      const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
-      if (canvasContainer && this.cizilebilir) {
-        canvasContainer.classList.add('silgi-aktif');
-        canvasContainer.classList.remove('kalem-aktif');
-      }
+      document.body.classList.add('silgi-aktif');
+      document.body.classList.remove('kalem-aktif');
     }
   }
-  
+
   kalemModunuAc(): void {
     if (this.silgiModu) {
       this.silgiModu = false;
@@ -364,59 +279,40 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       this.kalemRengi = this.oncekiKalemRengi;
       this.kalemKalinligi = this.oncekiKalemKalinligi;
       this.ayarlaKalemOzellikleri();
-      
+
       // İmleç stilini güncelle
-      const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
-      if (canvasContainer && this.cizilebilir) {
-        canvasContainer.classList.add('kalem-aktif');
-        canvasContainer.classList.remove('silgi-aktif');
-      }
+      document.body.classList.add('kalem-aktif');
+      document.body.classList.remove('silgi-aktif');
     }
   }
 
   // Tam ekran modunu açıp kapatma
   toggleTamEkran(): void {
     this.tamEkranModu = !this.tamEkranModu;
-    
+
     const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
-    const body = document.body;
-    
+
     if (this.tamEkranModu) {
-      pdfContainer.classList.add('tam-ekran');
-      body.classList.add('tam-ekran-aktif');
+      document.body.classList.add('tam-ekran-aktif');
     } else {
-      pdfContainer.classList.remove('tam-ekran');
-      body.classList.remove('tam-ekran-aktif');
+      document.body.classList.remove('tam-ekran-aktif');
     }
-    
+
     // Canvas'ı yeniden boyutlandır
     setTimeout(() => {
-      if (this.canvas) {
-        const width = pdfContainer.clientWidth;
-        const height = pdfContainer.clientHeight;
-        
-        this.canvas.setWidth(width);
-        this.canvas.setHeight(height);
-        this.canvas.renderAll();
-      }
+      this.canvasBoyutlandir();
     }, 300);
   }
-  
+
   // PDF'i büyütme
   pdfBuyut(): void {
     this.zoom += 0.25;
     if (this.zoom > 3) this.zoom = 1; // 3x zoom sonrası yeniden başlat
-    
+
     const pdfViewerElement = document.querySelector('pdf-viewer') as HTMLElement;
     if (pdfViewerElement) {
       pdfViewerElement.style.transform = `scale(${this.zoom})`;
       pdfViewerElement.style.transformOrigin = 'center top';
-      
-      // Canvas'ı da ölçeklendir
-      if (this.canvas) {
-        this.canvas.setZoom(this.zoom);
-        this.canvas.renderAll();
-      }
     }
   }
 
