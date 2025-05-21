@@ -1,1 +1,68 @@
-<p>konu-anlatim-sayfalari works!</p>
+
+<div class="konu-anlatim-container">
+  <h2 class="baslik">Konu Anlatım Sayfası</h2>
+
+  <div class="kontrol-paneli">
+    <div class="pdf-secici">
+      <label for="pdf-yukle" class="btn-sec">PDF Seç</label>
+      <input type="file" id="pdf-yukle" (change)="pdfSecildi($event)" accept="application/pdf" class="gizli">
+      <span *ngIf="secilenPDF" class="secilen-dosya">{{ secilenPDF }}</span>
+    </div>
+
+    <div *ngIf="pdfYuklendi" class="cizim-araclari">
+      <button (click)="toggleCizim()" class="btn-arac">
+        {{ cizilebilir ? 'Çizimi Durdur' : 'Çizimi Başlat' }}
+      </button>
+      <button (click)="temizleCanvas()" class="btn-arac">Temizle</button>
+      
+      <div class="renk-secici">
+        <label for="renk">Renk:</label>
+        <input type="color" id="renk" [value]="kalemRengi" (change)="renkDegistir($event)">
+      </div>
+      
+      <div class="kalinlik-secici">
+        <label for="kalinlik">Kalınlık:</label>
+        <input type="range" id="kalinlik" min="1" max="20" [value]="kalemKalinligi" (change)="kalinlikDegistir($event)">
+      </div>
+    </div>
+
+    <div *ngIf="pdfYuklendi" class="sayfa-kontrolleri">
+      <button (click)="oncekiSayfa()" [disabled]="currentPage === 1" class="btn-sayfa">Önceki Sayfa</button>
+      <span class="sayfa-bilgisi">{{ currentPage }} / {{ totalPages }}</span>
+      <button (click)="sonrakiSayfa()" [disabled]="currentPage === totalPages" class="btn-sayfa">Sonraki Sayfa</button>
+    </div>
+
+    <div *ngIf="pdfYuklendi" class="kaydetme-bolumu">
+      <select [(ngModel)]="secilenGrup" class="grup-secici">
+        <option value="" disabled selected>Öğrenci Grubu Seçin</option>
+        <option *ngFor="let grup of ogrenciGruplari" [value]="grup">{{ grup }}</option>
+      </select>
+      <button (click)="kaydet()" [disabled]="!secilenGrup || kaydetmeIsleminde" class="btn-kaydet">
+        {{ kaydetmeIsleminde ? 'Kaydediliyor...' : 'Kaydet' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="calisma-alani">
+    <div *ngIf="!pdfYuklendi" class="pdf-yukle-mesaj">
+      Lütfen bir PDF dosyası seçin
+    </div>
+    
+    <div *ngIf="pdfYuklendi" class="pdf-container">
+      <pdf-viewer
+        [src]="pdfSrc"
+        [page]="currentPage"
+        [render-text]="true"
+        [original-size]="false"
+        [fit-to-page]="true"
+        [show-all]="false"
+        (after-load-complete)="pdfYuklendi($event)"
+        style="display: block;"
+      ></pdf-viewer>
+      
+      <div class="canvas-container">
+        <canvas #canvas></canvas>
+      </div>
+    </div>
+  </div>
+</div>
