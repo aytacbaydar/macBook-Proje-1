@@ -121,16 +121,31 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     this.totalPages = event.numPages;
     console.log('PDF sayfa sayısı:', this.totalPages);
 
-    // Canvas oluştur
+    // Canvas oluştur (PDF tamamen yüklendikten sonra)
     setTimeout(() => {
       this.canvasOlustur();
-    }, 500);
+      
+      // Canvas yüklendikten sonra tekrar pointer events ayarını yap
+      setTimeout(() => {
+        const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
+        if (canvasContainer) {
+          canvasContainer.style.pointerEvents = 'auto';
+          
+          const upperCanvas = document.querySelector('.upper-canvas') as HTMLCanvasElement;
+          if (upperCanvas) {
+            upperCanvas.style.pointerEvents = 'auto';
+          }
+        }
+      }, 300);
+    }, 1000);
   }
 
   canvasOlustur(): void {
     if (!this.pdfYuklendi) return;
 
     try {
+      console.log('Canvas oluşturma başlıyor...');
+      
       // PDF konteyner boyutlarını al
       const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
       if (!pdfContainer) {
@@ -140,6 +155,8 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
 
       const width = pdfContainer.clientWidth;
       const height = pdfContainer.clientHeight;
+      
+      console.log('PDF konteyner boyutları:', width, 'x', height);
 
       // Canvas elementi boyutlandırma
       const canvasEl = this.canvasElement.nativeElement;
@@ -157,15 +174,36 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
         width: width,
         height: height,
         selection: false,
-        renderOnAddRemove: true
+        renderOnAddRemove: true,
+        interactive: true
       });
 
       // Kalem özelliklerini ayarla
       this.ayarlaKalemOzellikleri();
 
+      // Canvas z-index ve pointer events ayarı
+      const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
+      if (canvasContainer) {
+        canvasContainer.style.position = 'absolute';
+        canvasContainer.style.top = '0';
+        canvasContainer.style.left = '0';
+        canvasContainer.style.width = '100%';
+        canvasContainer.style.height = '100%';
+        canvasContainer.style.zIndex = '10';
+        canvasContainer.style.pointerEvents = 'auto';
+        
+        // Upper canvas
+        const upperCanvas = document.querySelector('.canvas-container .upper-canvas') as HTMLCanvasElement;
+        if (upperCanvas) {
+          upperCanvas.style.pointerEvents = 'auto';
+        }
+      }
+
       console.log('Canvas oluşturuldu:', width, 'x', height);
 
       // Kalem modunu aktifleştir
+      this.cizilebilir = true;
+      this.canvas.isDrawingMode = true;
       document.body.classList.add('kalem-aktif');
       document.body.classList.remove('silgi-aktif');
 
@@ -238,20 +276,32 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   }
 
   ayarlaKalemOzellikleri(): void {
-    if (!this.canvas || !this.canvas.freeDrawingBrush) {
-      console.log('Canvas veya freeDrawingBrush henüz hazır değil');
+    if (!this.canvas) {
+      console.log('Canvas henüz hazır değil');
       return;
+    }
+    
+    // Canvas'ı çizim moduna al
+    this.canvas.isDrawingMode = true;
+    this.cizilebilir = true;
+    
+    // Brush'ı kontrol et
+    if (!this.canvas.freeDrawingBrush) {
+      this.canvas.freeDrawingBrush = new fabric.PencilBrush(this.canvas);
     }
 
     // Kalem ayarlarını güncelle
     this.canvas.freeDrawingBrush.color = this.kalemRengi;
     this.canvas.freeDrawingBrush.width = this.kalemKalinligi;
-
-    // Çizim modunu aktifleştir
-    this.cizilebilir = true;
-    this.canvas.isDrawingMode = true;
-
+    
+    // Çizim ince çizgiler oluşturmasın
+    if (this.canvas.freeDrawingBrush.getInk) {
+      this.canvas.freeDrawingBrush.getInk = false;
+    }
+    
+    // Log info
     console.log('Kalem ayarları güncellendi:', this.kalemRengi, this.kalemKalinligi);
+    console.log('Canvas çizim modu:', this.canvas.isDrawingMode);
   }
 
   silgiModunuAc(): void {
