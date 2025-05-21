@@ -84,15 +84,18 @@
         [show-borders]="false"
         [external-link-target]="'blank'"
         (after-load-complete)="pdfYuklendiHandler($event)"
-        style="display: block; width: 100%; height: 100%; transition: transform 0.3s ease;"
+        style="display: block; width: 100%; height: 100%; transition: transform 0.3s ease; z-index: 1;"
       ></pdf-viewer>
 
+      <!-- Canvas container, her zaman PDF'in üzerinde olacak şekilde -->
       <div class="canvas-container" 
            [class.kalem-aktif]="!silgiModu && cizilebilir"
-           [class.silgi-aktif]="silgiModu && cizilebilir">
-        <canvas #canvas></canvas>
+           [class.silgi-aktif]="silgiModu && cizilebilir"
+           style="z-index: 100;">
+        <canvas #canvas style="touch-action: none;"></canvas>
       </div>
     </div>
+</old_str>
   </div>
 </div>
 
