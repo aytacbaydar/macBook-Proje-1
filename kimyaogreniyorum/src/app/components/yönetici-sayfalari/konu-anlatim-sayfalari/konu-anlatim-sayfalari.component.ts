@@ -21,6 +21,8 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   kaydetmeIsleminde: boolean = false;
   kalemRengi: string = '#000000';
   kalemKalinligi: number = 2;
+  dosyaBoyutuUyarisi: boolean = false;
+  maxDosyaBoyutu: number = 16 * 1024 * 1024; // 16 MB
 
   constructor() { }
 
@@ -42,12 +44,38 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     const file = event.target.files[0];
     if (file) {
       this.secilenPDF = file.name;
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.pdfSrc = e.target.result;
-        this.pdfYuklendi = true;
-      };
-      reader.readAsDataURL(file);
+      
+      // Dosya boyutu kontrolü
+      if (file.size > this.maxDosyaBoyutu) {
+        this.dosyaBoyutuUyarisi = true;
+        alert(`Dikkat: Seçtiğiniz PDF dosyası ${Math.round(file.size / (1024 * 1024))} MB boyutundadır. 
+               Büyük dosyalar yavaş yüklenebilir veya performans sorunlarına neden olabilir.
+               Devam etmek için 'Optimize Et ve Yükle' düğmesine tıklayın.`);
+        return;
+      }
+      
+      this.pdfDosyasiniYukle(file);
+    }
+  }
+  
+  pdfDosyasiniYukle(file: File): void {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.pdfSrc = e.target.result;
+      this.pdfYuklendi = true;
+      this.dosyaBoyutuUyarisi = false;
+    };
+    reader.onerror = (error) => {
+      console.error('PDF yükleme hatası:', error);
+      alert('PDF dosyası yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
+    };
+    reader.readAsDataURL(file);
+  }
+  
+  optimizeEtVeYukle(): void {
+    const fileInput = document.getElementById('pdf-yukle') as HTMLInputElement;
+    if (fileInput.files && fileInput.files[0]) {
+      this.pdfDosyasiniYukle(fileInput.files[0]);
     }
   }
 

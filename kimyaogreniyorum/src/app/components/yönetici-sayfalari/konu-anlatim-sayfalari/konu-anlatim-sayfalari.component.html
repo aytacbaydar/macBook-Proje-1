@@ -44,8 +44,19 @@
   </div>
 
   <div class="calisma-alani">
-    <div *ngIf="!pdfYuklendi" class="pdf-yukle-mesaj">
+    <div *ngIf="!pdfYuklendi && !dosyaBoyutuUyarisi" class="pdf-yukle-mesaj">
       Lütfen bir PDF dosyası seçin
+    </div>
+    
+    <div *ngIf="dosyaBoyutuUyarisi" class="buyuk-dosya-uyarisi">
+      <p>Seçtiğiniz dosya 16 MB'tan büyük. Büyük dosyalar yavaş yüklenebilir veya performans sorunlarına neden olabilir.</p>
+      <p>Öneriler:</p>
+      <ul>
+        <li>Daha küçük bir PDF dosyası kullanın</li>
+        <li>PDF'i daha düşük çözünürlükte kaydederek sıkıştırın</li>
+        <li>PDF'i bölümlere ayırıp daha küçük dosyalar halinde yükleyin</li>
+      </ul>
+      <button (click)="optimizeEtVeYukle()" class="btn-optimize">Optimize Et ve Yükle</button>
     </div>
     
     <div *ngIf="pdfYuklendi" class="pdf-container">
@@ -56,6 +67,11 @@
         [original-size]="false"
         [fit-to-page]="true"
         [show-all]="false"
+        [autoresize]="true"
+        [render-text-mode]="1"
+        [show-borders]="false"
+        [external-link-target]="'blank'"
+        [render-interactiveForms]="false"
         (after-load-complete)="pdfYuklendi($event)"
         style="display: block;"
       ></pdf-viewer>
