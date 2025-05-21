@@ -1,0 +1,20 @@
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+import { KonuAnlatimSayfalariComponent } from './components/yönetici-sayfalari/konu-anlatim-sayfalari/konu-anlatim-sayfalari.component';
+
+@NgModule({
+  declarations: [
+    AppComponent,
+    KonuAnlatimSayfalariComponent
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
