@@ -70,8 +70,12 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     const reader = new FileReader();
     reader.onload = (e: any) => {
       this.pdfSrc = e.target.result;
-      this.pdfYuklendi = true;
-      this.dosyaBoyutuUyarisi = false;
+      // Kısa bir gecikme ekleyerek yükleme işlemini daha güvenilir hale getiriyoruz
+      setTimeout(() => {
+        this.pdfYuklendi = true;
+        this.dosyaBoyutuUyarisi = false;
+        console.log('PDF yüklendi:', this.pdfSrc.substring(0, 50) + '...');  // PDF'in ilk kısmını kontrol için logla
+      }, 100);
     };
     reader.onerror = (error) => {
       console.error('PDF yükleme hatası:', error);
@@ -89,6 +93,22 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
 
   pdfYuklendiHandler(event: any): void {
     this.totalPages = event.numPages;
+    console.log('PDF sayfa sayısı:', this.totalPages);
+    
+    // Canvas boyutunu PDF sayfasına göre ayarla
+    setTimeout(() => {
+      if (this.canvas) {
+        const pdfContainer = document.querySelector('.pdf-container');
+        if (pdfContainer) {
+          const width = pdfContainer.clientWidth;
+          const height = pdfContainer.clientHeight;
+          
+          this.canvas.setWidth(width);
+          this.canvas.setHeight(height);
+          this.canvas.renderAll();
+        }
+      }
+    }, 200);
   }
 
   oncekiSayfa(): void {
