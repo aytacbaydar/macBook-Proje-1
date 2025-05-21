@@ -124,7 +124,13 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
           
           this.canvas.setWidth(width);
           this.canvas.setHeight(height);
-          this.canvas.renderAll();
+          
+          // Çizim modunu etkinleştir
+          this.cizilebilir = true;
+          this.canvas.isDrawingMode = true;
+          
+          // Kalem özelliklerini ayarla
+          this.ayarlaKalemOzellikleri();
           
           // Canvas'ı PDF'in üzerine yerleştir
           const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
@@ -133,16 +139,16 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
             canvasEl.style.position = 'absolute';
             canvasEl.style.top = '0';
             canvasEl.style.left = '0';
-            canvasEl.style.pointerEvents = 'auto'; // Her zaman çizim yapılabilir olsun
-            canvasContainer.style.pointerEvents = 'auto'; // Container da etkin olsun
+            canvasEl.style.zIndex = '999'; // Üst katmanda olduğundan emin ol
+            
+            // Pointer events ayarları için CSS sınıfları kullanılacak
+            canvasContainer.style.pointerEvents = 'auto';
+            canvasEl.style.pointerEvents = 'auto';
           }
+          
+          this.canvas.renderAll();
         }
       }
-      
-      // Çizim modunu etkinleştir
-      this.cizilebilir = true;
-      this.canvas.isDrawingMode = true;
-      this.ayarlaKalemOzellikleri();
     }, 500);
   }
 
@@ -167,6 +173,22 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   toggleCizim(): void {
     this.cizilebilir = !this.cizilebilir;
     this.canvas.isDrawingMode = this.cizilebilir;
+    
+    // Canvas container üzerindeki imleç stilini güncelle
+    const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
+    if (canvasContainer) {
+      if (this.cizilebilir) {
+        if (this.silgiModu) {
+          canvasContainer.classList.add('silgi-aktif');
+          canvasContainer.classList.remove('kalem-aktif');
+        } else {
+          canvasContainer.classList.add('kalem-aktif');
+          canvasContainer.classList.remove('silgi-aktif');
+        }
+      } else {
+        canvasContainer.classList.remove('kalem-aktif', 'silgi-aktif');
+      }
+    }
   }
 
   renkDegistir(event: any): void {
@@ -183,6 +205,23 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     if (this.canvas && this.canvas.freeDrawingBrush) {
       this.canvas.freeDrawingBrush.color = this.kalemRengi;
       this.canvas.freeDrawingBrush.width = this.kalemKalinligi;
+      
+      // Çizim modunu etkinleştirdiğimizden emin olalım
+      if (this.cizilebilir) {
+        this.canvas.isDrawingMode = true;
+      }
+      
+      // Canvas el imleç stilini de güncelle
+      const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
+      if (canvasContainer && this.cizilebilir) {
+        if (this.silgiModu) {
+          canvasContainer.classList.add('silgi-aktif');
+          canvasContainer.classList.remove('kalem-aktif');
+        } else {
+          canvasContainer.classList.add('kalem-aktif');
+          canvasContainer.classList.remove('silgi-aktif');
+        }
+      }
     }
   }
   
@@ -197,6 +236,13 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       this.kalemRengi = '#FFFFFF';
       this.kalemKalinligi = 15; // Silgi daha kalın olsun
       this.ayarlaKalemOzellikleri();
+      
+      // İmleç stilini güncelle
+      const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
+      if (canvasContainer && this.cizilebilir) {
+        canvasContainer.classList.add('silgi-aktif');
+        canvasContainer.classList.remove('kalem-aktif');
+      }
     }
   }
   
@@ -207,6 +253,13 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       this.kalemRengi = this.oncekiKalemRengi;
       this.kalemKalinligi = this.oncekiKalemKalinligi;
       this.ayarlaKalemOzellikleri();
+      
+      // İmleç stilini güncelle
+      const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
+      if (canvasContainer && this.cizilebilir) {
+        canvasContainer.classList.add('kalem-aktif');
+        canvasContainer.classList.remove('silgi-aktif');
+      }
     }
   }
 
