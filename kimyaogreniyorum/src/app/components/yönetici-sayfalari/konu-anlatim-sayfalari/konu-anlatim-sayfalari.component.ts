@@ -38,13 +38,30 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.canvas = new fabric.Canvas(this.canvasElement.nativeElement, {
-      isDrawingMode: true,
-      width: 800,
-      height: 600
-    });
-
-    // Kalem ayarlarını yapılandır
+    // Kısa bir gecikme ekleyerek canvas'ın düzgün oluşmasını sağlıyoruz
+    setTimeout(() => {
+      this.canvas = new fabric.Canvas(this.canvasElement.nativeElement, {
+        isDrawingMode: true,
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+      
+      // Kalem ayarlarını yapılandır
+      this.ayarlaKalemOzellikleri();
+      
+      // Canvas boyutunu pencere boyutuna göre ayarla
+      window.addEventListener('resize', () => {
+        this.canvas.setWidth(window.innerWidth);
+        this.canvas.setHeight(window.innerHeight);
+        this.canvas.renderAll();
+      });
+    }, 300);
+  }
+  
+  // Hızlı renk seçimi için metod
+  hizliRenkSec(renk: string): void {
+    this.kalemRengi = renk;
+    this.silgiModu = false; // Renk seçildiğinde silgi modundan çık
     this.ayarlaKalemOzellikleri();
   }
 
@@ -95,7 +112,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     this.totalPages = event.numPages;
     console.log('PDF sayfa sayısı:', this.totalPages);
     
-    // Canvas boyutunu PDF sayfasına göre ayarla
+    // Canvas boyutunu PDF sayfasına göre ayarla - daha uzun bir bekleme süresi
     setTimeout(() => {
       if (this.canvas) {
         const pdfContainer = document.querySelector('.pdf-container');
@@ -106,9 +123,18 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
           this.canvas.setWidth(width);
           this.canvas.setHeight(height);
           this.canvas.renderAll();
+          
+          // Canvas'ı PDF'in üzerine yerleştir
+          const canvasEl = document.querySelector('.canvas-container canvas') as HTMLCanvasElement;
+          if (canvasEl) {
+            canvasEl.style.position = 'absolute';
+            canvasEl.style.top = '0';
+            canvasEl.style.left = '0';
+            canvasEl.style.pointerEvents = this.cizilebilir ? 'auto' : 'none';
+          }
         }
       }
-    }, 200);
+    }, 500);
   }
 
   oncekiSayfa(): void {
@@ -145,7 +171,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   }
 
   ayarlaKalemOzellikleri(): void {
-    if (this.canvas) {
+    if (this.canvas && this.canvas.freeDrawingBrush) {
       this.canvas.freeDrawingBrush.color = this.kalemRengi;
       this.canvas.freeDrawingBrush.width = this.kalemKalinligi;
     }
