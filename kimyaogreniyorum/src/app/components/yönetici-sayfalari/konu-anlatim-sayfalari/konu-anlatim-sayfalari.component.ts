@@ -151,58 +151,74 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
             
             console.log('PDF boyutları:', width, height);
             
-            this.canvas.setWidth(width);
-            this.canvas.setHeight(height);
-            
             // Fabric canvas yeniden başlat
             this.canvas.dispose();
             
-            // Yeni canvas oluştur
-            this.canvas = new fabric.Canvas(this.canvasElement.nativeElement, {
+            // Yeni canvas oluştur (ancak DOM'daki canvas elementini temizleme)
+            const canvasEl = this.canvasElement.nativeElement;
+            canvasEl.width = width;
+            canvasEl.height = height;
+            
+            this.canvas = new fabric.Canvas(canvasEl, {
               isDrawingMode: true,
               width: width,
-              height: height
+              height: height,
+              selection: false,
+              renderOnAddRemove: true,
+              stateful: false
             });
             
-            // Çizim modunu etkinleştir
+            // Çizim modunu açıkça etkinleştir
             this.cizilebilir = true;
             this.canvas.isDrawingMode = true;
             
             // Kalem özelliklerini ayarla
-            this.ayarlaKalemOzellikleri();
+            if (this.canvas.freeDrawingBrush) {
+              this.canvas.freeDrawingBrush.color = this.kalemRengi;
+              this.canvas.freeDrawingBrush.width = this.kalemKalinligi;
+              
+              // Yumuşak çizim için
+              if (this.canvas.freeDrawingBrush instanceof fabric.PencilBrush) {
+                this.canvas.freeDrawingBrush.decimate = 8;
+              }
+            }
             
-            // Canvas'ı PDF'in üzerine yerleştir
+            // Canvas'ı PDF'in üzerine pozisyonla
             const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
             if (canvasContainer) {
               canvasContainer.style.position = 'absolute';
               canvasContainer.style.top = '0';
               canvasContainer.style.left = '0';
-              canvasContainer.style.width = width + 'px';
-              canvasContainer.style.height = height + 'px';
+              canvasContainer.style.width = '100%';
+              canvasContainer.style.height = '100%';
               canvasContainer.style.zIndex = '999';
               canvasContainer.style.pointerEvents = 'auto';
+              
+              // Canvas container içindeki tüm canvas elementlerine stil uygula
+              const allCanvasElements = canvasContainer.querySelectorAll('canvas');
+              allCanvasElements.forEach((canvas: HTMLCanvasElement) => {
+                canvas.style.position = 'absolute';
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+                canvas.style.zIndex = '999';
+                canvas.style.pointerEvents = 'auto';
+                canvas.style.cursor = 'crosshair';
+              });
             }
             
-            const canvasEl = document.querySelector('.canvas-container canvas') as HTMLCanvasElement;
-            if (canvasEl) {
-              canvasEl.style.position = 'absolute';
-              canvasEl.style.top = '0';
-              canvasEl.style.left = '0';
-              canvasEl.style.width = width + 'px';
-              canvasEl.style.height = height + 'px';
-              canvasEl.style.zIndex = '999';
-              canvasEl.style.pointerEvents = 'auto';
-              canvasEl.style.cursor = 'crosshair';
-            }
+            console.log('Canvas hazır, çizim modu:', this.canvas.isDrawingMode);
+            
+            // Kalem özelliklerini yeniden ayarla
+            this.ayarlaKalemOzellikleri();
             
             // Canvas'ı yenile
             this.canvas.renderAll();
-            
-            console.log('Canvas hazır, çizim modu:', this.canvas.isDrawingMode);
           }
         }
       }
-    }, 1000); // Daha uzun bekleme süresi
+    }, 1500); // Daha uzun bekleme süresi
   }
 
   oncekiSayfa(): void {
@@ -256,17 +272,37 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
 
   ayarlaKalemOzellikleri(): void {
     if (this.canvas && this.canvas.freeDrawingBrush) {
+      // Kalem rengini ve kalınlığını ayarla
       this.canvas.freeDrawingBrush.color = this.kalemRengi;
       this.canvas.freeDrawingBrush.width = this.kalemKalinligi;
       
-      // Çizim modunu etkinleştirdiğimizden emin olalım
-      if (this.cizilebilir) {
-        this.canvas.isDrawingMode = true;
+      // Performans ve çizim kalitesi için çizim davranışını ayarla
+      if (this.canvas.freeDrawingBrush instanceof fabric.PencilBrush) {
+        // Daha yumuşak çizimler için ayarlar
+        this.canvas.freeDrawingBrush.decimate = 8;
       }
       
-      // Canvas el imleç stilini de güncelle
+      // Çizim modunu kesinlikle etkinleştir
+      this.cizilebilir = true;
+      this.canvas.isDrawingMode = true;
+      
+      console.log('Kalem ayarları güncellendi:', 
+        'Renk:', this.kalemRengi, 
+        'Kalınlık:', this.kalemKalinligi, 
+        'Çizim Modu:', this.canvas.isDrawingMode);
+      
+      // Canvas container ve tüm canvas elementleri için pointer-events'i aç
       const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
-      if (canvasContainer && this.cizilebilir) {
+      if (canvasContainer) {
+        canvasContainer.style.pointerEvents = 'auto';
+        
+        // Tüm canvas elementleri için de pointer-events'i aç
+        const allCanvasElements = canvasContainer.querySelectorAll('canvas');
+        allCanvasElements.forEach((canvas: HTMLCanvasElement) => {
+          canvas.style.pointerEvents = 'auto';
+        });
+        
+        // İmleç stilini ayarla
         if (this.silgiModu) {
           canvasContainer.classList.add('silgi-aktif');
           canvasContainer.classList.remove('kalem-aktif');
@@ -275,6 +311,8 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
           canvasContainer.classList.remove('silgi-aktif');
         }
       }
+    } else {
+      console.error('Canvas veya freeDrawingBrush tanımlanmamış!');
     }
   }
   
