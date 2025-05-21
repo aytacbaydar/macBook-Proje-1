@@ -14,6 +14,12 @@
         {{ cizilebilir ? 'Çizimi Durdur' : 'Çizimi Başlat' }}
       </button>
       <button (click)="temizleCanvas()" class="btn-arac">Temizle</button>
+      <button (click)="silgiModunuAc()" class="btn-arac" [class.aktif]="silgiModu">
+        <span class="ikon-silgi">🧹</span> Silgi
+      </button>
+      <button (click)="kalemModunuAc()" class="btn-arac" [class.aktif]="!silgiModu">
+        <span class="ikon-kalem">✏️</span> Kalem
+      </button>
       
       <div class="renk-secici">
         <label for="renk">Renk:</label>
@@ -68,10 +74,8 @@
         [fit-to-page]="true"
         [show-all]="false"
         [autoresize]="true"
-        [render-text-mode]="1"
         [show-borders]="false"
         [external-link-target]="'blank'"
-        [render-interactiveForms]="false"
         (after-load-complete)="pdfYuklendiHandler($event)"
         style="display: block;"
       ></pdf-viewer>
