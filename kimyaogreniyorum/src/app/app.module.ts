@@ -9,8 +9,7 @@ import { KonuAnlatimSayfalariComponent } from './components/yönetici-sayfalari/
 
 @NgModule({
   declarations: [
-    AppComponent,
-    KonuAnlatimSayfalariComponent
+    AppComponent
   ],
   imports: [
     BrowserModule,

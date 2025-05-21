@@ -1,14 +1,19 @@
 
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
+import { FormsModule } from '@angular/forms';
+import { PdfViewerModule } from 'ng2-pdf-viewer';
+import { NgIf, NgFor } from '@angular/common';
 
 @Component({
   selector: 'app-konu-anlatim-sayfalari',
   templateUrl: './konu-anlatim-sayfalari.component.html',
-  styleUrls: ['./konu-anlatim-sayfalari.component.scss']
+  styleUrls: ['./konu-anlatim-sayfalari.component.scss'],
+  standalone: true,
+  imports: [FormsModule, PdfViewerModule, NgIf, NgFor]
 })
 export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
-  @ViewChild('canvas') canvasElement: ElementRef;
+  @ViewChild('canvas') canvasElement!: ElementRef;
   pdfSrc: string = '';
   secilenPDF: string = '';
   pdfYuklendi: boolean = false;
@@ -79,7 +84,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     }
   }
 
-  pdfYuklendi(event: any): void {
+  pdfYuklendiHandler(event: any): void {
     this.totalPages = event.numPages;
   }
 
