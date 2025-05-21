@@ -35,6 +35,14 @@
       <button (click)="oncekiSayfa()" [disabled]="currentPage === 1" class="btn-sayfa">Önceki Sayfa</button>
       <span class="sayfa-bilgisi">{{ currentPage }} / {{ totalPages }}</span>
       <button (click)="sonrakiSayfa()" [disabled]="currentPage === totalPages" class="btn-sayfa">Sonraki Sayfa</button>
+      <button (click)="toggleTamEkran()" class="btn-tam-ekran">
+        <span>{{ tamEkranModu ? 'Tam Ekrandan Çık' : 'Tam Ekran' }}</span>
+        <i class="ekran-ikonu">{{ tamEkranModu ? '⬇️' : '⬆️' }}</i>
+      </button>
+      <button (click)="pdfBuyut()" class="btn-buyut">
+        <span>Büyüt</span>
+        <i class="zoom-ikonu">🔍+</i>
+      </button>
     </div>
 
     <div *ngIf="pdfYuklendi" class="kaydetme-bolumu">
@@ -76,7 +84,7 @@
         [show-borders]="false"
         [external-link-target]="'blank'"
         (after-load-complete)="pdfYuklendiHandler($event)"
-        style="display: block; width: 100%; height: 100%;"
+        style="display: block; width: 100%; height: 100%; transition: transform 0.3s ease;"
       ></pdf-viewer>
 
       <div class="canvas-container">
@@ -90,11 +98,12 @@
 .pdf-container {
   position: relative;
   width: 100%;
-  height: calc(100vh - 250px);
+  height: calc(100vh - 200px);
   margin: 0 auto;
   border: 1px solid #ccc;
   border-radius: 5px;
   overflow: hidden;
+  transition: all 0.3s ease;
 
   ::ng-deep pdf-viewer {
     display: block !important;
@@ -102,6 +111,18 @@
     width: 100% !important;
     background-color: #f9f9f9;
   }
+}
+
+.pdf-container.tam-ekran {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1000;
+  margin: 0;
+  border: none;
+  border-radius: 0;
 }
 
 .canvas-container {
