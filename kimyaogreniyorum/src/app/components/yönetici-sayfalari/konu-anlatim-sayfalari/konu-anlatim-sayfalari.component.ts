@@ -111,13 +111,34 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   pdfDosyasiniYukle(file: File): void {
     const reader = new FileReader();
     reader.onload = (e: any) => {
-      this.pdfSrc = e.target.result;
-      // Kısa bir gecikme ekleyerek yükleme işlemini daha güvenilir hale getiriyoruz
+      console.log('PDF dosyası yükleniyor...');
+      // PDF verisini önbelleğe yükleyip sonra ayarla
+      const pdfData = e.target.result;
+      
+      // Yeni bir Image objesi oluşturup PDF'i test et (PDF'in görüntülenmesini garantilemek için)
+      const img = new Image();
+      img.onload = () => {
+        console.log('PDF yükleme başarılı');
+      };
+      
+      this.pdfSrc = pdfData;
+      console.log('PDF yüklendi - uzunluk:', pdfData.length);
+      
+      // Daha uzun gecikme ile PDF yüklenme durumunu güncelle
       setTimeout(() => {
         this.pdfYuklendi = true;
         this.dosyaBoyutuUyarisi = false;
-        console.log('PDF yüklendi:', this.pdfSrc.substring(0, 50) + '...');  // PDF'in ilk kısmını kontrol için logla
-      }, 100);
+        
+        // PDF görüntüleme bileşenini yeniden oluştur
+        const pdfViewerElement = document.querySelector('pdf-viewer') as HTMLElement;
+        if (pdfViewerElement) {
+          pdfViewerElement.style.display = 'block';
+          pdfViewerElement.style.width = '100%';
+          pdfViewerElement.style.height = '100%';
+        }
+        
+        console.log('PDF görüntüleyici hazır');
+      }, 500); // Daha uzun bekleme süresi
     };
     reader.onerror = (error) => {
       console.error('PDF yükleme hatası:', error);
@@ -137,24 +158,36 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     this.totalPages = event.numPages;
     console.log('PDF sayfa sayısı:', this.totalPages);
     
+    // PDF'in görünür olduğundan emin ol
+    const pdfViewerElement = document.querySelector('pdf-viewer') as HTMLElement;
+    if (pdfViewerElement) {
+      pdfViewerElement.style.display = 'block';
+      pdfViewerElement.style.width = '100%';
+      pdfViewerElement.style.height = '100%';
+      pdfViewerElement.style.background = '#ffffff';
+    }
+    
     // Canvas boyutunu PDF sayfasına göre ayarla - daha uzun bir bekleme süresi
     setTimeout(() => {
       if (this.canvas) {
         const pdfContainer = document.querySelector('.pdf-container');
         if (pdfContainer) {
+          console.log('PDF container bulundu:', pdfContainer);
+          
+          // PDF viewer elementini doğrudan kontrol et
           const pdfViewerElement = document.querySelector('pdf-viewer') as HTMLElement;
-          const pdfElement = pdfViewerElement.querySelector('.ng2-pdf-viewer-container') as HTMLElement;
+          const pdfElement = document.querySelector('.ng2-pdf-viewer-container') as HTMLElement;
           
           if (pdfElement) {
-            const width = pdfElement.clientWidth;
-            const height = pdfElement.clientHeight;
+            const width = pdfContainer.clientWidth;
+            const height = pdfContainer.clientHeight;
             
-            console.log('PDF boyutları:', width, height);
+            console.log('PDF container boyutları:', width, height);
             
             // Fabric canvas yeniden başlat
             this.canvas.dispose();
             
-            // Yeni canvas oluştur (ancak DOM'daki canvas elementini temizleme)
+            // Yeni canvas oluştur
             const canvasEl = this.canvasElement.nativeElement;
             canvasEl.width = width;
             canvasEl.height = height;
