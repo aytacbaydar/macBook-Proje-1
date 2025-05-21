@@ -31,6 +31,8 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   kalemKalinligi: number = 2;
   dosyaBoyutuUyarisi: boolean = false;
   maxDosyaBoyutu: number = 16 * 1024 * 1024; // 16 MB
+  tamEkranModu: boolean = false;
+  zoom: number = 1.0; // PDF yakınlaştırma oranı
 
   constructor() { }
 
@@ -198,6 +200,52 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       this.kalemRengi = this.oncekiKalemRengi;
       this.kalemKalinligi = this.oncekiKalemKalinligi;
       this.ayarlaKalemOzellikleri();
+    }
+  }
+
+  // Tam ekran modunu açıp kapatma
+  toggleTamEkran(): void {
+    this.tamEkranModu = !this.tamEkranModu;
+    
+    const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
+    const body = document.body;
+    
+    if (this.tamEkranModu) {
+      pdfContainer.classList.add('tam-ekran');
+      body.classList.add('tam-ekran-aktif');
+    } else {
+      pdfContainer.classList.remove('tam-ekran');
+      body.classList.remove('tam-ekran-aktif');
+    }
+    
+    // Canvas'ı yeniden boyutlandır
+    setTimeout(() => {
+      if (this.canvas) {
+        const width = pdfContainer.clientWidth;
+        const height = pdfContainer.clientHeight;
+        
+        this.canvas.setWidth(width);
+        this.canvas.setHeight(height);
+        this.canvas.renderAll();
+      }
+    }, 300);
+  }
+  
+  // PDF'i büyütme
+  pdfBuyut(): void {
+    this.zoom += 0.25;
+    if (this.zoom > 3) this.zoom = 1; // 3x zoom sonrası yeniden başlat
+    
+    const pdfViewerElement = document.querySelector('pdf-viewer') as HTMLElement;
+    if (pdfViewerElement) {
+      pdfViewerElement.style.transform = `scale(${this.zoom})`;
+      pdfViewerElement.style.transformOrigin = 'center top';
+      
+      // Canvas'ı da ölçeklendir
+      if (this.canvas) {
+        this.canvas.setZoom(this.zoom);
+        this.canvas.renderAll();
+      }
     }
   }
 
