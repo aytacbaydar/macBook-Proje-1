@@ -112,38 +112,41 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     const reader = new FileReader();
     reader.onload = (e: any) => {
       console.log('PDF dosyası yükleniyor...');
-      // PDF verisini önbelleğe yükleyip sonra ayarla
-      const pdfData = e.target.result;
       
-      // Yeni bir Image objesi oluşturup PDF'i test et (PDF'in görüntülenmesini garantilemek için)
-      const img = new Image();
-      img.onload = () => {
-        console.log('PDF yükleme başarılı');
-      };
-      
-      this.pdfSrc = pdfData;
-      console.log('PDF yüklendi - uzunluk:', pdfData.length);
-      
-      // Daha uzun gecikme ile PDF yüklenme durumunu güncelle
-      setTimeout(() => {
+      try {
+        const pdfData = e.target.result;
+        console.log('PDF yüklendi - uzunluk:', pdfData.length);
+        
+        // PDF veri URL'i ayarla
+        this.pdfSrc = pdfData;
+        
+        // PDF yükleme durumunu güncelle
         this.pdfYuklendi = true;
         this.dosyaBoyutuUyarisi = false;
         
-        // PDF görüntüleme bileşenini yeniden oluştur
-        const pdfViewerElement = document.querySelector('pdf-viewer') as HTMLElement;
-        if (pdfViewerElement) {
-          pdfViewerElement.style.display = 'block';
-          pdfViewerElement.style.width = '100%';
-          pdfViewerElement.style.height = '100%';
-        }
+        console.log('PDF görüntüleyici hazırlanıyor...');
         
-        console.log('PDF görüntüleyici hazır');
-      }, 500); // Daha uzun bekleme süresi
+        // Angular'ın değişiklikleri algılaması için bir sonraki döngüde işlem yap
+        setTimeout(() => {
+          // PDF görüntüleme bileşenini kontrol et
+          const pdfViewerElement = document.querySelector('pdf-viewer') as HTMLElement;
+          if (pdfViewerElement) {
+            console.log('PDF viewer elementi bulundu ve ayarlandı');
+          } else {
+            console.error('PDF viewer elementi bulunamadı!');
+          }
+        }, 1000);
+      } catch (error) {
+        console.error('PDF işleme hatası:', error);
+        alert('PDF dosyası işlenirken bir hata oluştu. Lütfen tekrar deneyin.');
+      }
     };
+    
     reader.onerror = (error) => {
       console.error('PDF yükleme hatası:', error);
       alert('PDF dosyası yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
     };
+    
     reader.readAsDataURL(file);
   }
   
@@ -158,100 +161,84 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     this.totalPages = event.numPages;
     console.log('PDF sayfa sayısı:', this.totalPages);
     
-    // PDF'in görünür olduğundan emin ol
-    const pdfViewerElement = document.querySelector('pdf-viewer') as HTMLElement;
-    if (pdfViewerElement) {
-      pdfViewerElement.style.display = 'block';
-      pdfViewerElement.style.width = '100%';
-      pdfViewerElement.style.height = '100%';
-      pdfViewerElement.style.background = '#ffffff';
-    }
-    
-    // Canvas boyutunu PDF sayfasına göre ayarla - daha uzun bir bekleme süresi
+    // Canvas boyutlandırma ve oluşturma işlemi
     setTimeout(() => {
-      if (this.canvas) {
-        const pdfContainer = document.querySelector('.pdf-container');
-        if (pdfContainer) {
-          console.log('PDF container bulundu:', pdfContainer);
-          
-          // PDF viewer elementini doğrudan kontrol et
-          const pdfViewerElement = document.querySelector('pdf-viewer') as HTMLElement;
-          const pdfElement = document.querySelector('.ng2-pdf-viewer-container') as HTMLElement;
-          
-          if (pdfElement) {
-            const width = pdfContainer.clientWidth;
-            const height = pdfContainer.clientHeight;
-            
-            console.log('PDF container boyutları:', width, height);
-            
-            // Fabric canvas yeniden başlat
-            this.canvas.dispose();
-            
-            // Yeni canvas oluştur
-            const canvasEl = this.canvasElement.nativeElement;
-            canvasEl.width = width;
-            canvasEl.height = height;
-            
-            this.canvas = new fabric.Canvas(canvasEl, {
-              isDrawingMode: true,
-              width: width,
-              height: height,
-              selection: false,
-              renderOnAddRemove: true,
-              stateful: false
-            });
-            
-            // Çizim modunu açıkça etkinleştir
-            this.cizilebilir = true;
-            this.canvas.isDrawingMode = true;
-            
-            // Kalem özelliklerini ayarla
-            if (this.canvas.freeDrawingBrush) {
-              this.canvas.freeDrawingBrush.color = this.kalemRengi;
-              this.canvas.freeDrawingBrush.width = this.kalemKalinligi;
-              
-              // Yumuşak çizim için
-              if (this.canvas.freeDrawingBrush instanceof fabric.PencilBrush) {
-                this.canvas.freeDrawingBrush.decimate = 8;
-              }
-            }
-            
-            // Canvas'ı PDF'in üzerine pozisyonla
-            const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
-            if (canvasContainer) {
-              canvasContainer.style.position = 'absolute';
-              canvasContainer.style.top = '0';
-              canvasContainer.style.left = '0';
-              canvasContainer.style.width = '100%';
-              canvasContainer.style.height = '100%';
-              canvasContainer.style.zIndex = '999';
-              canvasContainer.style.pointerEvents = 'auto';
-              
-              // Canvas container içindeki tüm canvas elementlerine stil uygula
-              const allCanvasElements = canvasContainer.querySelectorAll('canvas');
-              allCanvasElements.forEach((canvas: HTMLCanvasElement) => {
-                canvas.style.position = 'absolute';
-                canvas.style.top = '0';
-                canvas.style.left = '0';
-                canvas.style.width = '100%';
-                canvas.style.height = '100%';
-                canvas.style.zIndex = '999';
-                canvas.style.pointerEvents = 'auto';
-                canvas.style.cursor = 'crosshair';
-              });
-            }
-            
-            console.log('Canvas hazır, çizim modu:', this.canvas.isDrawingMode);
-            
-            // Kalem özelliklerini yeniden ayarla
-            this.ayarlaKalemOzellikleri();
-            
-            // Canvas'ı yenile
-            this.canvas.renderAll();
-          }
+      try {
+        // PDF container'ı bul
+        const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
+        if (!pdfContainer) {
+          console.error('PDF container bulunamadı!');
+          return;
         }
+        
+        console.log('PDF container bulundu, boyutlar:', pdfContainer.clientWidth, pdfContainer.clientHeight);
+        
+        // Mevcut canvas'ı temizle
+        if (this.canvas) {
+          this.canvas.dispose();
+        }
+        
+        // Canvas boyutlarını ayarla
+        const width = pdfContainer.clientWidth;
+        const height = pdfContainer.clientHeight;
+        
+        // Canvas elementini hazırla
+        const canvasEl = this.canvasElement.nativeElement;
+        canvasEl.width = width;
+        canvasEl.height = height;
+        
+        // Yeni canvas oluştur
+        this.canvas = new fabric.Canvas(canvasEl, {
+          isDrawingMode: true,
+          width: width,
+          height: height,
+          selection: false,
+          renderOnAddRemove: true,
+          stateful: false
+        });
+        
+        console.log('Fabric canvas oluşturuldu:', this.canvas);
+        
+        // Çizim modu açık
+        this.cizilebilir = true;
+        this.canvas.isDrawingMode = true;
+        
+        // Kalem özelliklerini ayarla
+        this.ayarlaKalemOzellikleri();
+        
+        // Canvas container stillerini ayarla
+        const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
+        if (canvasContainer) {
+          // Canvas container görünürlüğünü ve pozisyonunu ayarla
+          canvasContainer.style.position = 'absolute';
+          canvasContainer.style.top = '0';
+          canvasContainer.style.left = '0';
+          canvasContainer.style.width = '100%';
+          canvasContainer.style.height = '100%';
+          canvasContainer.style.zIndex = '20'; // PDF'in üzerinde olmalı
+          canvasContainer.style.pointerEvents = 'auto';
+          
+          // Canvas container içindeki canvas elementlerini ayarla
+          const canvasElements = canvasContainer.querySelectorAll('canvas');
+          canvasElements.forEach((canvas: HTMLCanvasElement) => {
+            canvas.style.position = 'absolute';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.pointerEvents = 'auto';
+            canvas.style.touchAction = 'none'; // Dokunmatik cihazlar için
+          });
+        }
+        
+        // Canvas'ı hazır hale getir
+        this.canvas.renderAll();
+        console.log('Canvas hazırlandı ve çizime hazır');
+        
+      } catch (error) {
+        console.error('Canvas oluşturma hatası:', error);
       }
-    }, 1500); // Daha uzun bekleme süresi
+    }, 1000);
   }
 
   oncekiSayfa(): void {

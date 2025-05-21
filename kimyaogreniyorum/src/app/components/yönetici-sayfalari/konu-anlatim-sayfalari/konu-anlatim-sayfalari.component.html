@@ -74,26 +74,27 @@
     </div>
 
     <div *ngIf="pdfYuklendi" class="pdf-container" [class.tam-ekran]="tamEkranModu">
-      <pdf-viewer
-        [src]="pdfSrc"
-        [page]="currentPage"
-        [render-text]="true"
-        [original-size]="false"
-        [fit-to-page]="true"
-        [show-all]="false"
-        [autoresize]="true"
-        [show-borders]="false"
-        [external-link-target]="'blank'"
-        (after-load-complete)="pdfYuklendiHandler($event)"
-        style="display: block; width: 100%; height: 100%; transition: transform 0.3s ease; z-index: 1;"
-      ></pdf-viewer>
+      <!-- Önce PDF görüntüleyici -->
+      <div class="pdf-viewer-wrapper">
+        <pdf-viewer
+          [src]="pdfSrc"
+          [page]="currentPage"
+          [render-text]="true"
+          [original-size]="false"
+          [fit-to-page]="true"
+          [show-all]="false"
+          [autoresize]="true"
+          [show-borders]="false"
+          [external-link-target]="'blank'"
+          (after-load-complete)="pdfYuklendiHandler($event)"
+        ></pdf-viewer>
+      </div>
 
-      <!-- Canvas container, her zaman PDF'in üzerinde olacak şekilde -->
+      <!-- Sonra Canvas container -->
       <div class="canvas-container" 
            [class.kalem-aktif]="!silgiModu && cizilebilir"
-           [class.silgi-aktif]="silgiModu && cizilebilir"
-           style="z-index: 100;">
-        <canvas #canvas style="touch-action: none;"></canvas>
+           [class.silgi-aktif]="silgiModu && cizilebilir">
+        <canvas #canvas></canvas>
       </div>
     </div>
   </div>
