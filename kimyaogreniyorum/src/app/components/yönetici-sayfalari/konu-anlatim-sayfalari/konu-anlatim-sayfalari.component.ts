@@ -17,8 +17,11 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   pdfSrc: string = '';
   secilenPDF: string = '';
   pdfYuklendi: boolean = false;
-  canvas: fabric.Canvas;
+  canvas!: fabric.Canvas;
   cizilebilir: boolean = true;
+  silgiModu: boolean = false;
+  oncekiKalemRengi: string = '#000000';
+  oncekiKalemKalinligi: number = 2;
   currentPage: number = 1;
   totalPages: number = 0;
   ogrenciGruplari: string[] = ['9A Sınıfı', '10B Sınıfı', '11C Sınıfı', '12D Sınıfı'];
@@ -127,6 +130,30 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       this.canvas.freeDrawingBrush.width = this.kalemKalinligi;
     }
   }
+  
+  silgiModunuAc(): void {
+    if (!this.silgiModu) {
+      this.silgiModu = true;
+      // Önceki kalem ayarlarını kaydet
+      this.oncekiKalemRengi = this.kalemRengi;
+      this.oncekiKalemKalinligi = this.kalemKalinligi;
+      
+      // Silgi modunu etkinleştir (beyaz kalem)
+      this.kalemRengi = '#FFFFFF';
+      this.kalemKalinligi = 15; // Silgi daha kalın olsun
+      this.ayarlaKalemOzellikleri();
+    }
+  }
+  
+  kalemModunuAc(): void {
+    if (this.silgiModu) {
+      this.silgiModu = false;
+      // Önceki kalem ayarlarını geri yükle
+      this.kalemRengi = this.oncekiKalemRengi;
+      this.kalemKalinligi = this.oncekiKalemKalinligi;
+      this.ayarlaKalemOzellikleri();
+    }
+  }
 
   kaydet(): void {
     if (!this.secilenGrup) {
@@ -139,7 +166,8 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     // Canvas içeriğini PNG olarak alıyoruz
     const dataURL = this.canvas.toDataURL({
       format: 'png',
-      quality: 0.8
+      quality: 0.8,
+      multiplier: 1.0
     });
 
     // Burada backend'e kaydedilecek veriyi gönderebilirsiniz
