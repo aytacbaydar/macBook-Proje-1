@@ -181,23 +181,30 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
         return;
       }
 
+      // Önce PDF viewer elementini bul ve konumunu kontrol et
       const pdfViewer = document.querySelector('pdf-viewer') as HTMLElement;
       if (!pdfViewer) {
         console.error('PDF viewer bulunamadı');
         return;
       }
+      
+      // İçerik boyutlarını al (scrollWidth/Height içeriğin tam boyutunu verir)
+      const totalWidth = Math.max(pdfContainer.scrollWidth, pdfContainer.clientWidth);
+      const totalHeight = Math.max(pdfContainer.scrollHeight, pdfContainer.clientHeight);
+      
+      // PDF görüntüleme boyutlarını düzenle
+      pdfViewer.style.width = '100%';
+      pdfViewer.style.height = 'auto';
+      pdfViewer.style.minHeight = '100%';
 
       // Tam ekran modundaysa biraz bekle boyutlar güncellensin
       setTimeout(() => {
-        const width = pdfContainer.clientWidth;
-        const height = pdfContainer.clientHeight;
-        
-        console.log('PDF konteyner boyutları:', width, 'x', height);
-
-        // Canvas elementi boyutlandırma
+        // Canvas elementi boyutlandırma - tam PDF içeriği kadar
         const canvasEl = this.canvasElement.nativeElement;
-        canvasEl.width = width;
-        canvasEl.height = height;
+        canvasEl.width = totalWidth;
+        canvasEl.height = totalHeight;
+        
+        console.log('Canvas boyutları:', totalWidth, 'x', totalHeight);
 
         // Eğer önceki canvas varsa temizle
         if (this.canvas) {
@@ -207,8 +214,8 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
         // Yeni fabric canvas oluştur
         this.canvas = new fabric.Canvas(canvasEl, {
           isDrawingMode: true,
-          width: width,
-          height: height,
+          width: totalWidth,
+          height: totalHeight,
           selection: false,
           renderOnAddRemove: true,
           interactive: true
@@ -228,28 +235,46 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
           canvasContainer.style.zIndex = '10';
           canvasContainer.style.pointerEvents = 'auto';
           
+          // Canvas'ı PDF içeriğine tam olarak yerleştir
+          canvasContainer.style.overflow = 'visible';
+          
           // Canvas'ı daha dominant hale getir
           const lowerCanvas = document.querySelector('.canvas-container .lower-canvas') as HTMLCanvasElement;
           const upperCanvas = document.querySelector('.canvas-container .upper-canvas') as HTMLCanvasElement;
           
           if (lowerCanvas) {
             lowerCanvas.style.pointerEvents = 'auto';
+            lowerCanvas.style.position = 'absolute';
+            lowerCanvas.style.top = '0';
+            lowerCanvas.style.left = '0';
           }
           
           if (upperCanvas) {
             upperCanvas.style.pointerEvents = 'auto';
             upperCanvas.style.zIndex = '100';
+            upperCanvas.style.position = 'absolute';
+            upperCanvas.style.top = '0';
+            upperCanvas.style.left = '0';
+            upperCanvas.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>\') 0 24, auto';
           }
         }
 
-        console.log('Canvas oluşturuldu:', width, 'x', height);
+        console.log('Canvas oluşturuldu ve yerleştirildi');
 
         // Kalem modunu aktifleştir
         this.cizilebilir = true;
         this.canvas.isDrawingMode = true;
         document.body.classList.add('kalem-aktif');
         document.body.classList.remove('silgi-aktif');
-      }, 300);
+        
+        // Canvas scroll işlemleri PDF container ile senkronize olsun
+        pdfContainer.addEventListener('scroll', () => {
+          if (canvasContainer) {
+            canvasContainer.style.top = `-${pdfContainer.scrollTop}px`;
+            canvasContainer.style.left = `-${pdfContainer.scrollLeft}px`;
+          }
+        });
+      }, 500);
 
     } catch (error) {
       console.error('Canvas oluşturma hatası:', error);
@@ -357,12 +382,18 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
 
       // Silgi modunu etkinleştir (beyaz kalem)
       this.kalemRengi = '#FFFFFF';
-      this.kalemKalinligi = 15;
+      this.kalemKalinligi = Math.max(15, this.kalemKalinligi); // Silgi en az 15px olsun
       this.ayarlaKalemOzellikleri();
 
       // İmleç stilini güncelle
       document.body.classList.add('silgi-aktif');
       document.body.classList.remove('kalem-aktif');
+      
+      // Canvas container elemanını bul ve cursor stilini güncelle
+      const upperCanvas = document.querySelector('.canvas-container .upper-canvas') as HTMLCanvasElement;
+      if (upperCanvas) {
+        upperCanvas.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M15.14 3c-.51 0-1.02.2-1.41.59L2.59 14.73c-.78.77-.78 2.04 0 2.83L5.03 20h7.94l-1.72-1.72-4.47.01-1.41-1.41 8.84-8.84 1.42 1.41 1.72-1.72-5.47-5.47c-.39-.39-.9-.59-1.41-.59M21 19.5c0 .83-.67 1.5-1.5 1.5h-5.25l1.73-1.73 3.52-.01V19.5z"/></svg>\') 0 24, auto';
+      }
     }
   }
 

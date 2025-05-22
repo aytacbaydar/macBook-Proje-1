@@ -18,6 +18,16 @@
       <button (click)="kalemModunuAc()" class="btn-arac" [class.aktif]="!silgiModu">
         <span class="ikon-kalem">✏️</span> Kalem
       </button>
+
+      <div class="kalem-boyutu">
+        <label for="kalemBoyutu">Kalem Boyutu:</label>
+        <input type="range" id="kalemBoyutu" 
+               min="1" max="20" step="1" 
+               [(ngModel)]="kalemKalinligi" 
+               (change)="ayarlaKalemOzellikleri()">
+        <span>{{kalemKalinligi}}px</span>
+      </div>
+
       <button (click)="silgiModunuAc()" class="btn-arac" [class.aktif]="silgiModu">
         <span class="ikon-silgi">🧹</span> Silgi
       </button>
@@ -71,7 +81,7 @@
         [render-text]="true"
         [original-size]="false"
         [fit-to-page]="true"
-        [show-all]="false"
+        [show-all]="true"
         [autoresize]="true"
         [page]="currentPage"
         [show-borders]="false"
