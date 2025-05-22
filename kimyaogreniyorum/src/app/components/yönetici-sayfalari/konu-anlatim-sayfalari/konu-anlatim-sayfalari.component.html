@@ -89,7 +89,7 @@
         [fit-to-page]="false"
         [show-all]="true"
         [autoresize]="true"
-        [page]="1"
+        [page]="currentPage"
         [show-borders]="true"
         [external-link-target]="'blank'"
         [zoom]="zoom"
@@ -100,6 +100,25 @@
       ></pdf-viewer>
       <div class="canvas-wrapper">
         <canvas #canvas class="drawing-canvas"></canvas>
+      </div>
+      
+      <!-- Sayfalar arası geçiş için footer -->
+      <div class="pdf-footer" [class.tam-ekran-footer]="tamEkranModu">
+        <div class="footer-content">
+          <button (click)="sayfaBas()" class="btn-modern btn-sayfa">
+            <i class="ikon">⏮️</i> İlk Sayfa
+          </button>
+          <button (click)="oncekiSayfa()" class="btn-modern btn-sayfa" [disabled]="currentPage <= 1">
+            <i class="ikon">◀️</i> Önceki
+          </button>
+          <span class="sayfa-bilgisi">Sayfa {{ currentPage }} / {{ totalPages }}</span>
+          <button (click)="sonrakiSayfa()" class="btn-modern btn-sayfa" [disabled]="currentPage >= totalPages">
+            <i class="ikon">▶️</i> Sonraki
+          </button>
+          <button (click)="sayfaSon()" class="btn-modern btn-sayfa">
+            <i class="ikon">⏭️</i> Son Sayfa
+          </button>
+        </div>
       </div>
     </div>
   </div>
