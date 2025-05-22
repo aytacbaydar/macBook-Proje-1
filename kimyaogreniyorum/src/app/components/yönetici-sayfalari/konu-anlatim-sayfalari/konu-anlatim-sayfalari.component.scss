@@ -620,7 +620,8 @@
   .page {
     margin: 15px auto 40px auto !important; /* Sayfaların alt marjini artırıldı */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    max-width: 85% !important; /* Sayfaların tam genişlikte görünmesi */
+    width: 1200px !important; /* Sabit 1200px genişlik */
+    max-width: 90% !important; /* Mobil görünüm için maksimum genişlik */
     border-radius: 2px !important;
     transition: transform 0.3s ease !important;
   }
@@ -647,10 +648,11 @@
 /* Sayfaların tam görünmesi için ekstra stiller */
 ::ng-deep .pdfViewer .page {
   display: block !important;
-  width: 100% !important;
-  max-width: 800px !important; /* Maksimum genişlik */
+  width: 1200px !important;
+  max-width: 100% !important; /* Responsive davranış için */
   height: auto !important;
   margin: 20px auto !important;
+  scroll-margin-top: 50px; /* Sayfa değiştirirken üstte boşluk bırak */
 }
 
 /* Tüm sayfaların görünmesi için ekstra düzenleme */

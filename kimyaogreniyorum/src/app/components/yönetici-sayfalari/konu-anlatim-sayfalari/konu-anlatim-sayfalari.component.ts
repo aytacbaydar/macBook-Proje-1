@@ -339,26 +339,35 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   }
 
   sayfayaGit(sayfa: number): void {
-    // PDF görüntüleyici sayfasını değiştir
-    const pdfViewer = document.querySelector('pdf-viewer') as any;
-    if (pdfViewer && pdfViewer.page) {
-      try {
-        // PDF görüntüleyici sayfasını değiştir
-        pdfViewer.page = sayfa;
+    // Önce currentPage değerini güncelle
+    this.currentPage = sayfa;
+    
+    try {
+      // Sayfayı bul ve kaydır
+      setTimeout(() => {
+        // Sayfa elementini seç
+        const sayfaElement = document.querySelector(`.page[data-page-number="${sayfa}"]`) as HTMLElement;
+        
+        if (sayfaElement) {
+          // Sayfaya kaydır
+          const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
+          if (pdfContainer) {
+            pdfContainer.scrollTop = sayfaElement.offsetTop - 20;
+          }
+          
+          // Önceki sayfaları kaydırmak için alternatif yaklaşım
+          sayfaElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          
+          console.log('Sayfa değiştirildi:', sayfa);
+        } else {
+          console.error('Sayfa elementi bulunamadı:', sayfa);
+        }
         
         // Canvas'ı temizle
         this.temizleCanvas();
-        
-        // Sayfaya odaklan
-        setTimeout(() => {
-          const sayfaElement = document.querySelector(`.page[data-page-number="${sayfa}"]`);
-          if (sayfaElement) {
-            sayfaElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        }, 100);
-      } catch (error) {
-        console.error('Sayfa değiştirme hatası:', error);
-      }
+      }, 200);
+    } catch (error) {
+      console.error('Sayfa değiştirme hatası:', error);
     }
   }
 
