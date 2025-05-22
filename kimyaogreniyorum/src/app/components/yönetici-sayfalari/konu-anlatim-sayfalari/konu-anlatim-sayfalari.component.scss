@@ -607,16 +607,17 @@
 ::ng-deep pdf-viewer {
   display: block !important;
   width: 100% !important;
-  height: auto !important; /* pdf'in yüksekliği içeriğine göre belirlensin */
-  min-height: 100% !important;
+  height: 1400px !important; /* Yüksekliği sabit 1400px olarak ayarla */
+  min-height: 1400px !important;
   background-color: white;
 
   .ng2-pdf-viewer-container {
     overflow: visible !important;
-    padding-bottom: 120px !important; /* Alt kısımda daha fazla boşluk bırak */
+    padding-bottom: 200px !important; /* Alt kısımda daha fazla boşluk bırak */
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
+    height: 1400px !important;
   }
 
   .page {
@@ -655,6 +656,16 @@
   height: auto !important;
   margin: 20px auto !important;
   scroll-margin-top: 50px; /* Sayfa değiştirirken üstte boşluk bırak */
+  z-index: 1 !important; /* Sayfaların render sırasını düzelt */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
+  border-radius: 4px !important;
+  page-break-after: always !important;
+  padding-bottom: 50px !important;
+}
+
+/* Özel imleç modlarını belirginleştir */
+body:not(.kalem-aktif):not(.silgi-aktif) .drawing-canvas {
+  cursor: default !important;
 }
 
 /* Tüm sayfaların görünmesi için ekstra düzenleme */

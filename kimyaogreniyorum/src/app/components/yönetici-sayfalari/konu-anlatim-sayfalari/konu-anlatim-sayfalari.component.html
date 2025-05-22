@@ -18,8 +18,12 @@
         <button (click)="hizliRenkSec('#000000')" class="renk-btn siyah" [class.aktif]="kalemRengi === '#000000'" title="Siyah"></button>
       </div>
 
-      <button (click)="kalemModunuAc()" class="btn-modern" [class.aktif]="!silgiModu">
+      <button (click)="kalemModunuAc()" class="btn-modern" [class.aktif]="!silgiModu && cizilebilir">
         <i class="ikon">✏️</i> Kalem
+      </button>
+
+      <button (click)="toggleCizim()" class="btn-modern" [class.aktif]="!cizilebilir">
+        <i class="ikon">👆</i> İmleç {{cizilebilir ? 'Modu' : 'Modu'}}
       </button>
 
       <div class="kalem-boyutu">
@@ -36,7 +40,7 @@
       <button (click)="silgiModunuAc()" class="btn-modern" [class.aktif]="silgiModu">
         <i class="ikon">🧹</i> Silgi
       </button>
-      
+
       <button (click)="temizleCanvas()" class="btn-modern temizle">
         <i class="ikon">🗑️</i> Temizle
       </button>
@@ -96,12 +100,12 @@
         [zoom]="zoom"
         [stick-to-page]="false"
         (after-load-complete)="pdfYuklendiHandler($event)"
-        style="height: auto !important; width: 1200px !important; max-width: 100% !important; position: relative; display: block; min-height: 100%; margin: 0 auto; overflow-y: visible !important; margin-bottom: 100px !important;"
+        style="height: auto !important; width: 1400px !important; max-width: 100% !important; position: relative; display: block; min-height: 100%; margin: 0 auto; overflow-y: visible !important; margin-bottom: 100px !important;"
       ></pdf-viewer>
       <div class="canvas-wrapper">
         <canvas #canvas class="drawing-canvas"></canvas>
       </div>
-      
+
       <!-- Sayfalar arası geçiş için footer -->
       <div class="pdf-footer" [class.tam-ekran-footer]="tamEkranModu">
         <div class="footer-content">
