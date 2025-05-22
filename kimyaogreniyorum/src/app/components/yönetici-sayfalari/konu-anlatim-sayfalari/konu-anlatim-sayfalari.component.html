@@ -99,8 +99,9 @@
         [external-link-target]="'blank'"
         [zoom]="zoom"
         [stick-to-page]="false"
+        [show-all]="true"
         (after-load-complete)="pdfYuklendiHandler($event)"
-        style="height: auto !important; width: 1300px !important; max-width: 100% !important; position: relative; display: block; min-height: 100%; margin: 0 auto; overflow-y: visible !important; margin-bottom: 100px !important;"
+        style="height: auto !important; width: 1300px !important; max-width: 100% !important; position: relative; display: block; min-height: 100%; margin: 0 auto; overflow: visible !important; margin-bottom: 100px !important;"
       ></pdf-viewer>
       <div class="canvas-wrapper">
         <canvas #canvas class="drawing-canvas"></canvas>

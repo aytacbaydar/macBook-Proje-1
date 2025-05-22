@@ -510,21 +510,25 @@
   margin: 0 auto;
   border: 1px solid #ccc;
   border-radius: 8px;
-  overflow-y: visible !important;
-  overflow-y: hidden; /* Dikey scroll gizli */
-  overflow-x: hidden; /* Yatay scroll gizli */
+  overflow: auto !important; /* Her iki yönde scroll yapılabilsin */
   background-color: #f0f0f0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   padding-bottom: 60px; /* Footer için yer bırak */
   
-  /* Scrollbar'ı gizle */
+  /* Scrollbar stilleri */
   &::-webkit-scrollbar {
-    display: none;
+    width: 10px;
+    height: 10px;
   }
   
-  /* Firefox için scrollbar gizleme */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 5px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
 }
 
 /* PDF Footer Stili */
@@ -607,26 +611,29 @@
 ::ng-deep pdf-viewer {
   display: block !important;
   width: 100% !important;
-  height: 1300px !important; /* Yüksekliği sabit 1300px olarak ayarla */
+  height: auto !important; /* Height auto olarak değiştirildi */
   min-height: 1300px !important;
   background-color: white;
 
   .ng2-pdf-viewer-container {
     overflow: visible !important;
-    padding-bottom: 200px !important; /* Alt kısımda daha fazla boşluk bırak */
+    padding-bottom: 500px !important; /* Alt kısımda daha fazla boşluk bırak */
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    height: 1400px !important;
+    height: auto !important; /* Height auto olarak değiştirildi */
+    min-height: 1400px !important;
   }
 
   .page {
-    margin: 15px auto 40px auto !important; /* Sayfaların alt marjini artırıldı */
+    margin: 30px auto 60px auto !important; /* Sayfaların arası daha fazla açıldı */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
     width: 1200px !important; /* Sabit 1200px genişlik */
     max-width: 90% !important; /* Mobil görünüm için maksimum genişlik */
     border-radius: 2px !important;
     transition: transform 0.3s ease !important;
+    position: relative !important; /* Position relative eklendi */
+    z-index: 5 !important; /* Z-index eklendi */
   }
   
   /* Tüm sayfalar aynı stili kullansın - özellikle ilk iki sayfaya özel stil kaldırıldı */
@@ -693,11 +700,15 @@ body:not(.kalem-aktif):not(.silgi-aktif) .drawing-canvas {
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M15.14 3c-.51 0-1.02.2-1.41.59L2.59 14.73c-.78.77-.78 2.04 0 2.83L5.03 20h7.94l-1.72-1.72-4.47.01-1.41-1.41 8.84-8.84 1.42 1.41 1.72-1.72-5.47-5.47c-.39-.39-.9-.59-1.41-.59M21 19.5c0 .83-.67 1.5-1.5 1.5h-5.25l1.73-1.73 3.52-.01V19.5z"/></svg>') 0 24, auto;
 }
 
-.el-imleci-aktif .drawing-canvas {
+.el-imleci-aktif .drawing-canvas,
+.el-imleci-aktif ::ng-deep pdf-viewer,
+.el-imleci-aktif .pdf-container {
   cursor: grab !important;
 }
 
-.el-imleci-aktif .drawing-canvas:active {
+.el-imleci-aktif .drawing-canvas:active,
+.el-imleci-aktif ::ng-deep pdf-viewer:active,
+.el-imleci-aktif .pdf-container:active {
   cursor: grabbing !important;
 }
 
