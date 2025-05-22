@@ -121,6 +121,10 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   pdfYuklendiHandler(event: any): void {
     this.totalPages = event.numPages;
     console.log('PDF sayfa sayısı:', this.totalPages);
+    
+    // Tüm sayfaları göstermek için currentPage değerini 1 olarak ayarla
+    // PDF viewer'ın [show-all]="true" özelliği zaten tüm sayfaları gösterecektir
+    this.currentPage = 1;
 
     // Canvas oluştur (PDF tamamen yüklendikten sonra)
     setTimeout(() => {
@@ -131,9 +135,10 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
         // PDF container'ın tamamını görünür hale getir
         const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
         if (pdfContainer) {
-          pdfContainer.style.height = 'calc(100vh - 200px)';
+          pdfContainer.style.height = 'calc(100vh - 180px)';
           pdfContainer.style.width = '100%';
           pdfContainer.style.overflow = 'auto';
+          pdfContainer.style.paddingBottom = '100px';
         }
         
         // Canvas yapılandırmasını güçlendir

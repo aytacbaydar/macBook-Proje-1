@@ -50,71 +50,71 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-  
+
   &:hover {
     background-color: #f5f5f5;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
   }
-  
+
   &:active {
     transform: translateY(0);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
-  
+
   &.aktif {
     background-color: #e6f7ff;
     border-color: #91d5ff;
     color: #1890ff;
     box-shadow: 0 0 8px rgba(24, 144, 255, 0.2);
   }
-  
+
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
   }
-  
+
   .ikon {
     font-size: 16px;
   }
-  
+
   &.temizle {
     background-color: #fff0f0;
     color: #ff4d4f;
     border-color: #ffccc7;
-    
+
     &:hover {
       background-color: #fff0f0;
     }
   }
-  
+
   &.kaydet {
     background-color: #f6ffed;
     color: #52c41a;
     border-color: #b7eb8f;
-    
+
     &:hover {
       background-color: #f6ffed;
     }
   }
-  
+
   &.ekran {
     background-color: #f9f0ff;
     color: #722ed1;
     border-color: #d3adf7;
-    
+
     &:hover {
       background-color: #f9f0ff;
     }
   }
-  
+
   &.sayfa {
     background-color: #e6f7ff;
     color: #1890ff;
     border-color: #91d5ff;
-    
+
     &:hover {
       background-color: #e6f7ff;
     }
@@ -129,7 +129,7 @@
   background-color: white;
   cursor: pointer;
   min-width: 120px;
-  
+
   &:focus {
     outline: none;
     border-color: #40a9ff;
@@ -141,7 +141,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  
+
   label {
     font-size: 14px;
     color: #666;
@@ -302,16 +302,16 @@
   align-items: center;
   gap: 5px;
   padding: 0 10px;
-  
+
   label {
     font-size: 14px;
     white-space: nowrap;
   }
-  
+
   input[type="range"] {
     width: 100px;
   }
-  
+
   span {
     font-size: 12px;
     min-width: 40px;
@@ -501,13 +501,15 @@
 .pdf-container {
   position: relative;
   width: 100%;
-  height: calc(100vh - 200px);
+  height: auto;
+  min-height: calc(100vh - 180px);
   margin: 0 auto;
   border: 1px solid #ccc;
   border-radius: 8px;
   overflow: auto; /* auto yapılarak içeriğin kaydırılabilmesi sağlanıyor */
   background-color: #f0f0f0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding-bottom: 100px; /* Alt kısımda daha fazla boşluk bırak */
 }
 
 .pdf-container.tam-ekran {
@@ -537,16 +539,16 @@
   height: auto !important; /* pdf'in yüksekliği içeriğine göre belirlensin */
   min-height: 100% !important;
   background-color: white;
-  
+
   .ng2-pdf-viewer-container {
     overflow: visible !important;
-    padding-bottom: 50px !important; /* Alt kısımda boşluk bırak */
+    padding-bottom: 100px !important; /* Alt kısımda daha fazla boşluk bırak */
   }
-  
+
   .page {
-    margin: 15px auto !important;
+    margin: 10px auto 30px auto !important; /* Sayfaların alt marjini artırıldı */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    max-width: 100% !important; /* Sayfaların tam genişlikte görünmesi */
+    max-width: 90% !important; /* Sayfaların tam genişlikte görünmesi */
     border-radius: 2px !important;
   }
 }
