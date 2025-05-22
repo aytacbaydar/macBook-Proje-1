@@ -444,8 +444,21 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   // PDF'i büyütme
   pdfBuyut(): void {
     this.zoom += 0.25;
-    if (this.zoom > 3) this.zoom = 1; // 3x zoom sonrası yeniden başlat
+    if (this.zoom > 3) this.zoom = 3; // Maksimum 3x zoom
 
+    this.updateZoomScale();
+  }
+
+  // PDF'i küçültme
+  pdfKucult(): void {
+    this.zoom -= 0.25;
+    if (this.zoom < 0.5) this.zoom = 0.5; // Minimum 0.5x zoom
+
+    this.updateZoomScale();
+  }
+
+  // Zoom ölçeğini güncelleme
+  private updateZoomScale(): void {
     const pdfViewerElement = document.querySelector('pdf-viewer') as HTMLElement;
     if (pdfViewerElement) {
       pdfViewerElement.style.transform = `scale(${this.zoom})`;
