@@ -505,10 +505,12 @@
 .pdf-container {
   position: relative;
   width: 100%;
-  height: 1200px;
+  height: auto;
+  min-height: 1200px;
   margin: 0 auto;
   border: 1px solid #ccc;
   border-radius: 8px;
+  overflow-y: visible !important;
   overflow-y: hidden; /* Dikey scroll gizli */
   overflow-x: hidden; /* Yatay scroll gizli */
   background-color: #f0f0f0;

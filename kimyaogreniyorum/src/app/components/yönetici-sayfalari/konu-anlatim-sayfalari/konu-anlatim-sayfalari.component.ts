@@ -121,7 +121,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   pdfYuklendiHandler(event: any): void {
     this.totalPages = event.numPages;
     console.log('PDF sayfa sayısı:', this.totalPages);
-    
+
     // Tüm sayfaları göstermek için currentPage değerini 1 olarak ayarla
     // PDF viewer'ın [show-all]="true" özelliği zaten tüm sayfaları gösterecektir
     this.currentPage = 1;
@@ -129,7 +129,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     // Canvas oluştur (PDF tamamen yüklendikten sonra)
     setTimeout(() => {
       this.canvasOlustur();
-      
+
       // Canvas'ı yeniden olusturmak için ekran yenilenmesine izin ver
       setTimeout(() => {
         // PDF container'ın tamamını görünür hale getir
@@ -140,31 +140,31 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
           pdfContainer.style.overflow = 'auto';
           pdfContainer.style.paddingBottom = '100px';
         }
-        
+
         // Canvas yapılandırmasını güçlendir
         const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
         if (canvasContainer) {
           canvasContainer.style.pointerEvents = 'auto';
           canvasContainer.style.zIndex = '100';
-          
+
           // Canvas elementlerini yapılandır
           const lowerCanvas = document.querySelector('.lower-canvas') as HTMLCanvasElement;
           const upperCanvas = document.querySelector('.upper-canvas') as HTMLCanvasElement;
-          
+
           if (lowerCanvas) {
             lowerCanvas.style.pointerEvents = 'auto';
           }
-          
+
           if (upperCanvas) {
             upperCanvas.style.pointerEvents = 'auto';
             upperCanvas.style.zIndex = '100';
             upperCanvas.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>\') 0 24, auto';
           }
         }
-        
+
         // Kalem özelliklerini ayarla
         this.ayarlaKalemOzellikleri();
-        
+
         // Kalem modunu etkinleştir
         this.cizilebilir = true;
         if (this.canvas) {
@@ -179,7 +179,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
 
     try {
       console.log('Canvas oluşturma başlıyor...');
-      
+
       // PDF konteyner boyutlarını al
       const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
       if (!pdfContainer) {
@@ -193,11 +193,11 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
         console.error('PDF viewer bulunamadı');
         return;
       }
-      
+
       // İçerik boyutlarını al (scrollWidth/Height içeriğin tam boyutunu verir)
       const totalWidth = Math.max(pdfContainer.scrollWidth, pdfContainer.clientWidth);
       const totalHeight = Math.max(pdfContainer.scrollHeight, pdfContainer.clientHeight);
-      
+
       // PDF görüntüleme boyutlarını düzenle
       pdfViewer.style.width = '100%';
       pdfViewer.style.height = 'auto';
@@ -205,11 +205,12 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
 
       // Tam ekran modundaysa biraz bekle boyutlar güncellensin
       setTimeout(() => {
-        // Canvas elementi boyutlandırma - tam PDF içeriği kadar
+        // Canvas elementi boyutlandırma - tüm PDF sayfalarını kapsayacak şekilde
         const canvasEl = this.canvasElement.nativeElement;
+        // Tüm sayfaları görebilmek için yeterli yükseklik belirle
         canvasEl.width = totalWidth;
-        canvasEl.height = totalHeight;
-        
+        canvasEl.height = Math.max(totalHeight, this.totalPages * 1400); // Her sayfa için yeterli alan
+
         console.log('Canvas boyutları:', totalWidth, 'x', totalHeight);
 
         // Eğer önceki canvas varsa temizle
@@ -240,21 +241,21 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
           canvasContainer.style.height = '100%';
           canvasContainer.style.zIndex = '10';
           canvasContainer.style.pointerEvents = 'auto';
-          
+
           // Canvas'ı PDF içeriğine tam olarak yerleştir
           canvasContainer.style.overflow = 'visible';
-          
+
           // Canvas'ı daha dominant hale getir
           const lowerCanvas = document.querySelector('.canvas-container .lower-canvas') as HTMLCanvasElement;
           const upperCanvas = document.querySelector('.canvas-container .upper-canvas') as HTMLCanvasElement;
-          
+
           if (lowerCanvas) {
             lowerCanvas.style.pointerEvents = 'auto';
             lowerCanvas.style.position = 'absolute';
             lowerCanvas.style.top = '0';
             lowerCanvas.style.left = '0';
           }
-          
+
           if (upperCanvas) {
             upperCanvas.style.pointerEvents = 'auto';
             upperCanvas.style.zIndex = '100';
@@ -272,7 +273,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
         this.canvas.isDrawingMode = true;
         document.body.classList.add('kalem-aktif');
         document.body.classList.remove('silgi-aktif');
-        
+
         // Canvas scroll işlemleri PDF container ile senkronize olsun
         pdfContainer.addEventListener('scroll', () => {
           if (canvasContainer) {
@@ -341,28 +342,28 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   sayfayaGit(sayfa: number): void {
     // Önce currentPage değerini güncelle
     this.currentPage = sayfa;
-    
+
     try {
       // Sayfayı bul ve kaydır
       setTimeout(() => {
         // Sayfa elementini seç
         const sayfaElement = document.querySelector(`.page[data-page-number="${sayfa}"]`) as HTMLElement;
-        
+
         if (sayfaElement) {
           // Sayfaya kaydır
           const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
           if (pdfContainer) {
             pdfContainer.scrollTop = sayfaElement.offsetTop - 20;
           }
-          
+
           // Önceki sayfaları kaydırmak için alternatif yaklaşım
           sayfaElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          
+
           console.log('Sayfa değiştirildi:', sayfa);
         } else {
           console.error('Sayfa elementi bulunamadı:', sayfa);
         }
-        
+
         // Canvas'ı temizle
         this.temizleCanvas();
       }, 200);
@@ -403,11 +404,11 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       console.log('Canvas henüz hazır değil');
       return;
     }
-    
+
     // Canvas'ı çizim moduna al
     this.canvas.isDrawingMode = true;
     this.cizilebilir = true;
-    
+
     // Brush'ı kontrol et
     if (!this.canvas.freeDrawingBrush) {
       this.canvas.freeDrawingBrush = new fabric.PencilBrush(this.canvas);
@@ -416,7 +417,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     // Kalem ayarlarını güncelle
     this.canvas.freeDrawingBrush.color = this.kalemRengi;
     this.canvas.freeDrawingBrush.width = this.kalemKalinligi;
-    
+
     // İnce çizgiler için ek ayarlar (fabric.js versiyonuna göre)
     try {
       // getInk özelliği bazı fabric.js versiyonlarında olmayabilir
@@ -427,7 +428,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     } catch (e) {
       console.log('getInk özelliği bu fabric.js versiyonunda desteklenmiyor');
     }
-    
+
     // Log info
     console.log('Kalem ayarları güncellendi:', this.kalemRengi, this.kalemKalinligi);
     console.log('Canvas çizim modu:', this.canvas.isDrawingMode);
@@ -448,7 +449,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       // İmleç stilini güncelle
       document.body.classList.add('silgi-aktif');
       document.body.classList.remove('kalem-aktif');
-      
+
       // Canvas container elemanını bul ve cursor stilini güncelle
       const upperCanvas = document.querySelector('.canvas-container .upper-canvas') as HTMLCanvasElement;
       if (upperCanvas) {
@@ -557,5 +558,15 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       alert(`"${this.secilenPDF}" dosyasının ${this.currentPage}. sayfası "${this.secilenGrup}" için kaydedildi.`);
       this.kaydetmeIsleminde = false;
     }, 1000);
+  }
+
+    // Sayfa terk edildiğinde uyarı mesajı göster
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnloadHandler(event: any) {
+    if (this.cizilebilir && this.canvas && this.canvas.getObjects().length > 0) {
+      event.returnValue = 'Sayfadan ayrılmak istediğinize emin misiniz? Yapılan değişiklikler kaybolabilir.';
+      return event.returnValue;
+    }
+    return true;
   }
 }
