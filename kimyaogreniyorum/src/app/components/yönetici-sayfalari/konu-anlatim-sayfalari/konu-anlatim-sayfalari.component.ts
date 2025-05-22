@@ -121,7 +121,16 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   pdfYuklendiHandler(event: any): void {
     this.totalPages = event.numPages;
     console.log('PDF sayfa sayısı:', this.totalPages);
-
+    
+    // PDF doğru yüklendiğini garanti et
+    const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
+    if (pdfContainer) {
+      // Yükseklik ayarlaması
+      const minHeight = this.totalPages * 800 + 500; // Her sayfa için minimum 800px + extra
+      pdfContainer.style.minHeight = `${minHeight}px`;
+      console.log('PDF konteyner minimum yüksekliği:', minHeight);
+    }
+    
     // Tüm sayfaları göstermek için currentPage değerini 1 olarak ayarla
     // PDF viewer'ın [show-all]="true" özelliği zaten tüm sayfaları gösterecektir
     this.currentPage = 1;
@@ -207,9 +216,9 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       setTimeout(() => {
         // Canvas elementi boyutlandırma - tüm PDF sayfalarını kapsayacak şekilde
         const canvasEl = this.canvasElement.nativeElement;
-        // Tüm sayfaları görebilmek için yeterli yükseklik belirle
+        // Tüm sayfaları görebilmek için daha fazla yükseklik belirle
         canvasEl.width = totalWidth;
-        canvasEl.height = Math.max(totalHeight, this.totalPages * 2000); // Her sayfa için yeterli alan arttırıldı
+        canvasEl.height = Math.max(totalHeight, this.totalPages * 3000); // Her sayfa için daha fazla alan
 
         console.log('Canvas boyutları:', totalWidth, 'x', totalHeight);
 
@@ -395,8 +404,17 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
         document.body.classList.remove('silgi-aktif');
       }
     } else {
+      // Kalem ve silgi modlarını kapat, normal fare imleci kullan
       document.body.classList.remove('kalem-aktif', 'silgi-aktif');
+      
+      // Canvas imleç stilini güncelle
+      const upperCanvas = document.querySelector('.canvas-container .upper-canvas') as HTMLCanvasElement;
+      if (upperCanvas) {
+        upperCanvas.style.cursor = 'default'; // Normal imleç
+      }
     }
+    
+    console.log('Çizim modu değiştirildi:', this.cizilebilir ? 'Kalem/Silgi Aktif' : 'İmleç Aktif');
   }
 
   ayarlaKalemOzellikleri(): void {
