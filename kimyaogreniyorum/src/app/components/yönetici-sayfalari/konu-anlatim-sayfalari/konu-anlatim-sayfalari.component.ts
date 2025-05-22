@@ -218,7 +218,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
         const canvasEl = this.canvasElement.nativeElement;
         // Tüm sayfaları görebilmek için daha fazla yükseklik belirle
         canvasEl.width = totalWidth;
-        canvasEl.height = Math.max(totalHeight, this.totalPages * 3000); // Her sayfa için daha fazla alan
+        canvasEl.height = Math.max(totalHeight, this.totalPages * 5000); // Her sayfa için daha fazla alan - değer artırıldı
 
         console.log('Canvas boyutları:', totalWidth, 'x', totalHeight);
 
@@ -399,9 +399,11 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       if (this.silgiModu) {
         document.body.classList.add('silgi-aktif');
         document.body.classList.remove('kalem-aktif');
+        document.body.classList.remove('el-imleci-aktif');
       } else {
         document.body.classList.add('kalem-aktif');
         document.body.classList.remove('silgi-aktif');
+        document.body.classList.remove('el-imleci-aktif');
       }
     } else {
       // Kalem ve silgi modlarını kapat, el imleci kullan
@@ -411,7 +413,13 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       // Canvas imleç stilini güncelle
       const upperCanvas = document.querySelector('.canvas-container .upper-canvas') as HTMLCanvasElement;
       if (upperCanvas) {
-        upperCanvas.style.cursor = 'grab'; // El işareti
+        upperCanvas.style.cursor = 'grab'; // El işareti 
+        
+        // PDF viewer elementinin de cursor'ını güncelle
+        const pdfViewerElement = document.querySelector('pdf-viewer') as HTMLElement;
+        if (pdfViewerElement) {
+          pdfViewerElement.style.cursor = 'grab';
+        }
       }
     }
     
