@@ -2,59 +2,68 @@
   <h2 class="baslik">Konu Anlatım Sayfası</h2>
 
   <div class="kontrol-paneli">
-    <div class="pdf-secici">
-      <label for="pdf-yukle" class="btn-sec">PDF Seç</label>
+    <div class="arac-grubu pdf-secici">
+      <label for="pdf-yukle" class="btn-modern">
+        <i class="ikon">📄</i> PDF Seç
+      </label>
       <input type="file" id="pdf-yukle" (change)="pdfSecildi($event)" accept="application/pdf" class="gizli">
       <span *ngIf="secilenPDF" class="secilen-dosya">{{ secilenPDF }}</span>
     </div>
 
-    <div *ngIf="pdfYuklendi" class="cizim-araclari">
+    <div *ngIf="pdfYuklendi" class="arac-grubu cizim-araclari">
       <div class="renk-secici">
-        <button (click)="hizliRenkSec('#FF0000')" class="renk-btn kirmizi" [class.aktif]="kalemRengi === '#FF0000'"></button>
-        <button (click)="hizliRenkSec('#0000FF')" class="renk-btn mavi" [class.aktif]="kalemRengi === '#0000FF'"></button>
-        <button (click)="hizliRenkSec('#000000')" class="renk-btn siyah" [class.aktif]="kalemRengi === '#000000'"></button>
+        <button (click)="hizliRenkSec('#FF0000')" class="renk-btn kirmizi" [class.aktif]="kalemRengi === '#FF0000'" title="Kırmızı"></button>
+        <button (click)="hizliRenkSec('#0000FF')" class="renk-btn mavi" [class.aktif]="kalemRengi === '#0000FF'" title="Mavi"></button>
+        <button (click)="hizliRenkSec('#000000')" class="renk-btn siyah" [class.aktif]="kalemRengi === '#000000'" title="Siyah"></button>
       </div>
 
-      <button (click)="kalemModunuAc()" class="btn-arac" [class.aktif]="!silgiModu">
-        <span class="ikon-kalem">✏️</span> Kalem
+      <button (click)="kalemModunuAc()" class="btn-modern" [class.aktif]="!silgiModu">
+        <i class="ikon">✏️</i> Kalem
       </button>
 
       <div class="kalem-boyutu">
-        <label for="kalemBoyutu">Kalem Boyutu:</label>
-        <input type="range" id="kalemBoyutu" 
-               min="1" max="20" step="1" 
-               [(ngModel)]="kalemKalinligi" 
-               (change)="ayarlaKalemOzellikleri()">
-        <span>{{kalemKalinligi}}px</span>
+        <label for="kalemBoyutu">Kalınlık:</label>
+        <select id="kalemBoyutu" [(ngModel)]="kalemKalinligi" (change)="ayarlaKalemOzellikleri()" class="boyut-secici">
+          <option [value]="2">İnce (2px)</option>
+          <option [value]="4">Normal (4px)</option>
+          <option [value]="8">Kalın (8px)</option>
+          <option [value]="12">Çok Kalın (12px)</option>
+          <option [value]="16">Ekstra Kalın (16px)</option>
+        </select>
       </div>
 
-      <button (click)="silgiModunuAc()" class="btn-arac" [class.aktif]="silgiModu">
-        <span class="ikon-silgi">🧹</span> Silgi
+      <button (click)="silgiModunuAc()" class="btn-modern" [class.aktif]="silgiModu">
+        <i class="ikon">🧹</i> Silgi
       </button>
-      <button (click)="temizleCanvas()" class="btn-arac">Temizle</button>
+      
+      <button (click)="temizleCanvas()" class="btn-modern temizle">
+        <i class="ikon">🗑️</i> Temizle
+      </button>
     </div>
 
-    <div *ngIf="pdfYuklendi" class="sayfa-kontrolleri">
-      <button (click)="oncekiSayfa()" [disabled]="currentPage === 1" class="btn-sayfa">Önceki</button>
+    <div *ngIf="pdfYuklendi" class="arac-grubu sayfa-kontrolleri">
+      <button (click)="oncekiSayfa()" [disabled]="currentPage === 1" class="btn-modern sayfa">
+        <i class="ikon">◀️</i> Önceki
+      </button>
       <span class="sayfa-bilgisi">{{ currentPage }} / {{ totalPages }}</span>
-      <button (click)="sonrakiSayfa()" [disabled]="currentPage === totalPages" class="btn-sayfa">Sonraki</button>
-      <button (click)="pdfBuyut()" class="btn-buyut">
-        <span>Büyüt</span>
-        <i class="zoom-ikonu">🔍</i>
+      <button (click)="sonrakiSayfa()" [disabled]="currentPage === totalPages" class="btn-modern sayfa">
+        Sonraki <i class="ikon">▶️</i>
       </button>
-      <button (click)="toggleTamEkran()" class="btn-tam-ekran">
-        <span>{{ tamEkranModu ? 'Normal Ekran' : 'Tam Ekran' }}</span>
-        <i class="ekran-ikonu">{{ tamEkranModu ? '⬇️' : '⬆️' }}</i>
+      <button (click)="pdfBuyut()" class="btn-modern">
+        <i class="ikon">🔍</i> Büyüt
+      </button>
+      <button (click)="toggleTamEkran()" class="btn-modern ekran">
+        <i class="ikon">{{ tamEkranModu ? '⬇️' : '⬆️' }}</i> {{ tamEkranModu ? 'Normal Ekran' : 'Tam Ekran' }}
       </button>
     </div>
 
-    <div *ngIf="pdfYuklendi" class="kaydetme-bolumu">
+    <div *ngIf="pdfYuklendi" class="arac-grubu kaydetme-bolumu">
       <select [(ngModel)]="secilenGrup" class="grup-secici">
         <option value="" disabled selected>Öğrenci Grubu Seçin</option>
         <option *ngFor="let grup of ogrenciGruplari" [value]="grup">{{ grup }}</option>
       </select>
-      <button (click)="kaydet()" [disabled]="!secilenGrup || kaydetmeIsleminde" class="btn-kaydet">
-        {{ kaydetmeIsleminde ? 'Kaydediliyor...' : 'Kaydet' }}
+      <button (click)="kaydet()" [disabled]="!secilenGrup || kaydetmeIsleminde" class="btn-modern kaydet">
+        <i class="ikon">💾</i> {{ kaydetmeIsleminde ? 'Kaydediliyor...' : 'Kaydet' }}
       </button>
     </div>
   </div>

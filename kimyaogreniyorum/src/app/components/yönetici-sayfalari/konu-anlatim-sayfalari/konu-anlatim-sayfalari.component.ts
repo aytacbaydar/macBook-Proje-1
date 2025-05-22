@@ -27,7 +27,8 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   secilenGrup: string = '';
   kaydetmeIsleminde: boolean = false;
   kalemRengi: string = '#000000';
-  kalemKalinligi: number = 2;
+  kalemKalinligi: number = 4; // Varsayılan olarak normal kalınlık
+  kalemKalinlikSecenekleri: number[] = [2, 4, 8, 12, 16]; // İnce, normal, kalın, çok kalın, ekstra kalın
   dosyaBoyutuUyarisi: boolean = false;
   maxDosyaBoyutu: number = 16 * 1024 * 1024; // 16 MB
   tamEkranModu: boolean = false;
@@ -363,9 +364,15 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     this.canvas.freeDrawingBrush.color = this.kalemRengi;
     this.canvas.freeDrawingBrush.width = this.kalemKalinligi;
     
-    // Çizim ince çizgiler oluşturmasın
-    if (this.canvas.freeDrawingBrush.getInk) {
-      this.canvas.freeDrawingBrush.getInk = false;
+    // İnce çizgiler için ek ayarlar (fabric.js versiyonuna göre)
+    try {
+      // getInk özelliği bazı fabric.js versiyonlarında olmayabilir
+      // bu yüzden hata kontrolü ile yaklaşıyoruz
+      if (this.canvas.freeDrawingBrush.hasOwnProperty('getInk')) {
+        (this.canvas.freeDrawingBrush as any).getInk = false;
+      }
+    } catch (e) {
+      console.log('getInk özelliği bu fabric.js versiyonunda desteklenmiyor');
     }
     
     // Log info
