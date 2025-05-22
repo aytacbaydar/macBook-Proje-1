@@ -44,7 +44,10 @@
     <div *ngIf="pdfYuklendi" class="arac-grubu sayfa-kontrolleri">
       <span class="sayfa-bilgisi">Toplam {{ totalPages }} sayfa</span>
       <button (click)="pdfBuyut()" class="btn-modern">
-        <i class="ikon">🔍</i> Büyüt
+        <i class="ikon">🔍</i> {{ zoom > 1 ? 'Büyüt' : 'Büyüt' }} ({{zoom}}x)
+      </button>
+      <button (click)="pdfKucult()" class="btn-modern">
+        <i class="ikon">🔍-</i> Küçült
       </button>
       <button (click)="toggleTamEkran()" class="btn-modern ekran">
         <i class="ikon">{{ tamEkranModu ? '⬇️' : '⬆️' }}</i> {{ tamEkranModu ? 'Normal Ekran' : 'Tam Ekran' }}

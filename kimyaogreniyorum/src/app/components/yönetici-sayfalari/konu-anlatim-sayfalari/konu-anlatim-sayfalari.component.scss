@@ -501,15 +501,25 @@
 .pdf-container {
   position: relative;
   width: 100%;
-  height: auto;
-  min-height: calc(100vh - 180px);
+  height: calc(100vh - 160px);
   margin: 0 auto;
   border: 1px solid #ccc;
   border-radius: 8px;
-  overflow: auto; /* auto yapılarak içeriğin kaydırılabilmesi sağlanıyor */
+  overflow-y: auto; /* Dikey scroll aktif */
+  overflow-x: hidden; /* Yatay scroll gizli */
   background-color: #f0f0f0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   padding-bottom: 100px; /* Alt kısımda daha fazla boşluk bırak */
+  
+  /* Scrollbar'ı gizle */
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    background: transparent;
+  }
+  
+  /* Firefox için scrollbar gizleme */
+  scrollbar-width: none;
 }
 
 .pdf-container.tam-ekran {
@@ -542,14 +552,24 @@
 
   .ng2-pdf-viewer-container {
     overflow: visible !important;
-    padding-bottom: 100px !important; /* Alt kısımda daha fazla boşluk bırak */
+    padding-bottom: 120px !important; /* Alt kısımda daha fazla boşluk bırak */
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
   }
 
   .page {
-    margin: 10px auto 30px auto !important; /* Sayfaların alt marjini artırıldı */
+    margin: 15px auto 40px auto !important; /* Sayfaların alt marjini artırıldı */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    max-width: 90% !important; /* Sayfaların tam genişlikte görünmesi */
+    max-width: 85% !important; /* Sayfaların tam genişlikte görünmesi */
     border-radius: 2px !important;
+    transition: transform 0.3s ease !important;
+  }
+  
+  /* İlk iki sayfa daha belirgin olsun */
+  .page:nth-child(1), .page:nth-child(2) {
+    transform: scale(1.02) !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2) !important;
   }
 }
 
