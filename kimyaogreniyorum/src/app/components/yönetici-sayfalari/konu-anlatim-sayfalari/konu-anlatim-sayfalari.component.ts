@@ -121,6 +121,10 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   pdfYuklendiHandler(event: any): void {
     this.totalPages = event.numPages;
     console.log('PDF sayfa sayısı:', this.totalPages);
+    
+    // Tüm sayfaları göstermek için currentPage değerini 1 olarak ayarla
+    // PDF viewer'ın [show-all]="true" özelliği zaten tüm sayfaları gösterecektir
+    this.currentPage = 1;
 
     // Canvas oluştur (PDF tamamen yüklendikten sonra)
     setTimeout(() => {
