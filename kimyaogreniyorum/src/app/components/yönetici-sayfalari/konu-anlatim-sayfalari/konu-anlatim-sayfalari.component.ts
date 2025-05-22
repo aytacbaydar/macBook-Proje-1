@@ -309,17 +309,56 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     }
   }
 
+  // Sayfa navigasyon fonksiyonları
+  sayfaBas(): void {
+    if (this.currentPage !== 1) {
+      this.currentPage = 1;
+      this.sayfayaGit(1);
+    }
+  }
+
   oncekiSayfa(): void {
     if (this.currentPage > 1) {
       this.currentPage--;
-      this.temizleCanvas();
+      this.sayfayaGit(this.currentPage);
     }
   }
 
   sonrakiSayfa(): void {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
-      this.temizleCanvas();
+      this.sayfayaGit(this.currentPage);
+    }
+  }
+
+  sayfaSon(): void {
+    if (this.currentPage !== this.totalPages) {
+      this.currentPage = this.totalPages;
+      this.sayfayaGit(this.totalPages);
+    }
+  }
+
+  sayfayaGit(sayfa: number): void {
+    // PDF görüntüleyici sayfasını değiştir
+    const pdfViewer = document.querySelector('pdf-viewer') as any;
+    if (pdfViewer && pdfViewer.page) {
+      try {
+        // PDF görüntüleyici sayfasını değiştir
+        pdfViewer.page = sayfa;
+        
+        // Canvas'ı temizle
+        this.temizleCanvas();
+        
+        // Sayfaya odaklan
+        setTimeout(() => {
+          const sayfaElement = document.querySelector(`.page[data-page-number="${sayfa}"]`);
+          if (sayfaElement) {
+            sayfaElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      } catch (error) {
+        console.error('Sayfa değiştirme hatası:', error);
+      }
     }
   }
 

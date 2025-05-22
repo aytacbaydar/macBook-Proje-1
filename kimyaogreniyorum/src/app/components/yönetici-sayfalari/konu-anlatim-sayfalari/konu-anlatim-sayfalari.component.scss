@@ -505,21 +505,76 @@
   margin: 0 auto;
   border: 1px solid #ccc;
   border-radius: 8px;
-  overflow-y: auto; /* Dikey scroll aktif */
+  overflow-y: hidden; /* Dikey scroll gizli */
   overflow-x: hidden; /* Yatay scroll gizli */
   background-color: #f0f0f0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  padding-bottom: 100px; /* Alt kısımda daha fazla boşluk bırak */
+  padding-bottom: 60px; /* Footer için yer bırak */
   
   /* Scrollbar'ı gizle */
   &::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-    background: transparent;
+    display: none;
   }
   
   /* Firefox için scrollbar gizleme */
   scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* PDF Footer Stili */
+.pdf-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: rgba(245, 245, 245, 0.95);
+  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+  padding: 10px 0;
+  z-index: 20;
+  backdrop-filter: blur(5px);
+  border-top: 1px solid #ddd;
+}
+
+.tam-ekran-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 1010;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 0 15px;
+  flex-wrap: wrap;
+}
+
+.btn-sayfa {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #91d5ff;
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .pdf-container.tam-ekran {
@@ -568,8 +623,11 @@
   
   /* İlk iki sayfa daha belirgin olsun */
   .page:nth-child(1), .page:nth-child(2) {
-    transform: scale(1.02) !important;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2) !important;
+    transform: scale(1.05) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
+    border: 2px solid #fff !important;
+    margin-top: 25px !important;
+    margin-bottom: 45px !important;
   }
 }
 
