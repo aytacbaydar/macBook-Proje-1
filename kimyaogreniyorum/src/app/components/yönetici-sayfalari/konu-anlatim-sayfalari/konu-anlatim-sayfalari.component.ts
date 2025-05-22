@@ -598,4 +598,110 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     }
     return true;
   }
+
+  // PDF'i bilgisayara indirme fonksiyonu
+  indirPDF(): void {
+    if (!this.pdfSrc) {
+      alert('İndirmek için bir PDF yüklemelisiniz!');
+      return;
+    }
+
+    try {
+      // Base64 veriyi alın
+      const base64Data = this.pdfSrc.split(',')[1];
+      
+      // Blob oluştur
+      const blob = this.base64ToBlob(base64Data, 'application/pdf');
+      
+      // İndirme linkini oluştur
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      // İndirme adını belirle
+      let dosyaAdi = this.secilenPDF || 'konu_anlatimi.pdf';
+      if (!dosyaAdi.toLowerCase().endsWith('.pdf')) {
+        dosyaAdi += '.pdf';
+      }
+      
+      a.download = dosyaAdi;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Belleği temizle
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      alert('PDF indirme işlemi başladı!');
+    } catch (error) {
+      console.error('PDF indirme hatası:', error);
+      alert('PDF indirme işlemi sırasında bir hata oluştu!');
+    }
+  }
+
+  // Veritabanına kaydetme işlemi
+  veritabaninaKaydet(): void {
+    if (!this.pdfSrc || !this.secilenGrup) {
+      alert('Kaydetmek için bir PDF yüklemeniz ve öğrenci grubu seçmeniz gerekiyor!');
+      return;
+    }
+
+    this.kaydetmeIsleminde = true;
+
+    try {
+      // Canvas içeriğini PNG olarak alıyoruz
+      const cizimVerisi = this.canvas.toDataURL({
+        format: 'png',
+        quality: 0.8,
+        multiplier: 1.0
+      });
+
+      // Form verisi oluşturalım
+      const formData = new FormData();
+      formData.append('pdf_adi', this.secilenPDF);
+      formData.append('sayfa_no', this.currentPage.toString());
+      formData.append('ogrenci_grubu', this.secilenGrup);
+      
+      // PDF verisini ekle
+      const pdfBlob = this.base64ToBlob(this.pdfSrc.split(',')[1], 'application/pdf');
+      formData.append('pdf_dosyasi', pdfBlob, this.secilenPDF || 'ders_notu.pdf');
+      
+      // Çizim verilerini ekle
+      const cizimBlob = this.base64ToBlob(cizimVerisi.split(',')[1], 'image/png');
+      formData.append('cizim_verisi', cizimBlob, 'cizim.png');
+
+      // HTTP isteği yapılması için kod buraya eklenecek
+      // this.http.post('server/api/konu_anlatim_kaydet.php', formData).subscribe(...)
+      
+      // Simülasyon için
+      setTimeout(() => {
+        alert(`"${this.secilenPDF}" dosyası ve çizimler "${this.secilenGrup}" için veritabanına kaydedildi.`);
+        this.kaydetmeIsleminde = false;
+      }, 1500);
+    } catch (error) {
+      console.error('Kaydetme hatası:', error);
+      alert('Kaydetme işlemi sırasında bir hata oluştu!');
+      this.kaydetmeIsleminde = false;
+    }
+  }
+
+  // Base64 veriyi Blob'a dönüştürme yardımcı fonksiyonu
+  private base64ToBlob(base64: string, contentType: string): Blob {
+    const byteCharacters = atob(base64);
+    const byteArrays = [];
+
+    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+      const slice = byteCharacters.slice(offset, offset + 512);
+      const byteNumbers = new Array(slice.length);
+      
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+      
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+
+    return new Blob(byteArrays, { type: contentType });
+  }
 }

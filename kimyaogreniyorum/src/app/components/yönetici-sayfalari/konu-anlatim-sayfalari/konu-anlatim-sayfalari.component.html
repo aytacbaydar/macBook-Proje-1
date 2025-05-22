@@ -64,8 +64,14 @@
         <option value="" disabled selected>Öğrenci Grubu Seçin</option>
         <option *ngFor="let grup of ogrenciGruplari" [value]="grup">{{ grup }}</option>
       </select>
+      <button (click)="veritabaninaKaydet()" [disabled]="!secilenGrup || kaydetmeIsleminde" class="btn-modern kaydet">
+        <i class="ikon">💾</i> {{ kaydetmeIsleminde ? 'Kaydediliyor...' : 'Veritabanına Kaydet' }}
+      </button>
+      <button (click)="indirPDF()" [disabled]="!pdfYuklendi" class="btn-modern indir">
+        <i class="ikon">📥</i> PDF İndir
+      </button>
       <button (click)="kaydet()" [disabled]="!secilenGrup || kaydetmeIsleminde" class="btn-modern kaydet">
-        <i class="ikon">💾</i> {{ kaydetmeIsleminde ? 'Kaydediliyor...' : 'Kaydet' }}
+        <i class="ikon">✏️</i> Çizimleri Kaydet
       </button>
     </div>
   </div>

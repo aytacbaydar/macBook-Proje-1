@@ -514,18 +514,18 @@
   background-color: #f0f0f0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   padding-bottom: 60px; /* Footer için yer bırak */
-  
+
   /* Scrollbar stilleri */
   &::-webkit-scrollbar {
     width: 10px;
     height: 10px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: #888;
     border-radius: 5px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: #f1f1f1;
   }
@@ -635,7 +635,7 @@
     position: relative !important; /* Position relative eklendi */
     z-index: 5 !important; /* Z-index eklendi */
   }
-  
+
   /* Tüm sayfalar aynı stili kullansın - özellikle ilk iki sayfaya özel stil kaldırıldı */
   .page {
     transform: scale(1.02) !important;
@@ -749,3 +749,21 @@ body.tam-ekran-aktif {
     margin-left: 0;
   }
 }
+
+.btn-modern.kaydet {
+    background-color: #4CAF50;
+    color: white;
+    &:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+  }
+
+  .btn-modern.indir {
+    background-color: #2196F3;
+    color: white;
+    &:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+  }
