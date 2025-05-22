@@ -67,8 +67,8 @@
       <button (click)="veritabaninaKaydet()" [disabled]="!secilenGrup || kaydetmeIsleminde" class="btn-modern kaydet">
         <i class="ikon">💾</i> {{ kaydetmeIsleminde ? 'Kaydediliyor...' : 'Veritabanına Kaydet' }}
       </button>
-      <button (click)="indirPDF()" [disabled]="!pdfYuklendi" class="btn-modern indir">
-        <i class="ikon">📥</i> PDF İndir
+      <button (click)="indirPDF()" [disabled]="!pdfYuklendi || kaydetmeIsleminde" class="btn-modern indir">
+        <i class="ikon">📥</i> {{ kaydetmeIsleminde ? 'İşleniyor...' : 'Notlu PDF İndir' }}
       </button>
       <button (click)="kaydet()" [disabled]="!secilenGrup || kaydetmeIsleminde" class="btn-modern kaydet">
         <i class="ikon">✏️</i> Çizimleri Kaydet

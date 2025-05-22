@@ -3,13 +3,15 @@ import * as fabric from 'fabric';
 import { FormsModule } from '@angular/forms';
 import { PdfViewerModule } from 'ng2-pdf-viewer';
 import { NgIf, NgFor } from '@angular/common';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { jsPDF } from 'jspdf';
 
 @Component({
   selector: 'app-konu-anlatim-sayfalari',
   templateUrl: './konu-anlatim-sayfalari.component.html',
   styleUrls: ['./konu-anlatim-sayfalari.component.scss'],
   standalone: true,
-  imports: [FormsModule, PdfViewerModule, NgIf, NgFor]
+  imports: [FormsModule, PdfViewerModule, NgIf, NgFor, HttpClientModule]
 })
 export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   @ViewChild('canvas') canvasElement!: ElementRef<HTMLCanvasElement>;
@@ -34,7 +36,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   tamEkranModu: boolean = false;
   zoom: number = 1.0; // PDF yakınlaştırma oranı
 
-  constructor() { }
+  constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
     // PDF container sınıfını ekleyerek kalem modunu aktifleştir
@@ -599,7 +601,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     return true;
   }
 
-  // PDF'i bilgisayara indirme fonksiyonu
+  // PDF'i çizimlerle birlikte bilgisayara indirme fonksiyonu
   indirPDF(): void {
     if (!this.pdfSrc) {
       alert('İndirmek için bir PDF yüklemelisiniz!');
@@ -607,35 +609,88 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     }
 
     try {
-      // Base64 veriyi alın
-      const base64Data = this.pdfSrc.split(',')[1];
+      this.kaydetmeIsleminde = true;
       
-      // Blob oluştur
-      const blob = this.base64ToBlob(base64Data, 'application/pdf');
+      // Tüm sayfaları ekran görüntüsü olarak alacak dizi
+      const sayfaGoruntumleri: string[] = [];
       
-      // İndirme linkini oluştur
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
+      // Canvas görüntüsünü al
+      const canvasResmi = this.canvas.toDataURL({
+        format: 'png',
+        quality: 1.0,
+        multiplier: 2.0 // Daha yüksek kalite
+      });
+      sayfaGoruntumleri.push(canvasResmi);
+
+      // PDF oluştur
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm'
+      });
       
-      // İndirme adını belirle
-      let dosyaAdi = this.secilenPDF || 'konu_anlatimi.pdf';
-      if (!dosyaAdi.toLowerCase().endsWith('.pdf')) {
-        dosyaAdi += '.pdf';
-      }
+      // Orijinal PDF'i arka plan olarak yükle
+      const pdfData = this.pdfSrc.split(',')[1];
       
-      a.download = dosyaAdi;
-      document.body.appendChild(a);
-      a.click();
+      // Notları PDF'e ekle
+      const img = new Image();
+      img.src = canvasResmi;
       
-      // Belleği temizle
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      alert('PDF indirme işlemi başladı!');
+      img.onload = () => {
+        // Her sayfaya çizimleri ekle
+        // NOT: Bu basit bir yaklaşım, daha gelişmiş çözüm için PDF.js veya başka kütüphaneler kullanılabilir
+        
+        // Dosya adını belirle
+        let dosyaAdi = this.secilenPDF || 'notlu_pdf.pdf';
+        if (!dosyaAdi.toLowerCase().endsWith('.pdf')) {
+          dosyaAdi += '.pdf';
+        }
+        
+        // Server'a gönder ve notları eklenmiş PDF'i döndür
+        const formData = new FormData();
+        formData.append('pdf_dosyasi', this.base64ToBlob(pdfData, 'application/pdf'), dosyaAdi);
+        formData.append('notlar', this.base64ToBlob(canvasResmi.split(',')[1], 'image/png'), 'notlar.png');
+        formData.append('sayfa_no', this.currentPage.toString());
+        
+        // Server'a gönder
+        this.http.post('server/api/pdf_notlar_birlestir.php', formData, { responseType: 'blob' })
+          .subscribe({
+            next: (response: Blob) => {
+              // İndirme linkini oluştur
+              const url = window.URL.createObjectURL(response);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `notlu_${dosyaAdi}`;
+              document.body.appendChild(a);
+              a.click();
+              
+              // Belleği temizle
+              window.URL.revokeObjectURL(url);
+              document.body.removeChild(a);
+              
+              this.kaydetmeIsleminde = false;
+              alert('PDF ve notlar başarıyla kaydedildi ve indirildi!');
+            },
+            error: (error) => {
+              console.error('PDF birleştirme hatası:', error);
+              
+              // Hata durumunda alternatif çözüm olarak sadece canvas görüntüsünü indir
+              const canvasUrl = canvasResmi;
+              const a = document.createElement('a');
+              a.href = canvasUrl;
+              a.download = 'notlar.png';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              
+              this.kaydetmeIsleminde = false;
+              alert('PDF işleme hatası nedeniyle sadece notlar PNG olarak indirildi!');
+            }
+          });
+      };
     } catch (error) {
       console.error('PDF indirme hatası:', error);
       alert('PDF indirme işlemi sırasında bir hata oluştu!');
+      this.kaydetmeIsleminde = false;
     }
   }
 
