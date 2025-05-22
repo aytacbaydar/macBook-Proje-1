@@ -135,7 +135,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
         // PDF container'ın tamamını görünür hale getir
         const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
         if (pdfContainer) {
-          pdfContainer.style.height = 'calc(100vh - 180px)';
+          pdfContainer.style.height = '1200px';
           pdfContainer.style.width = '100%';
           pdfContainer.style.overflow = 'auto';
           pdfContainer.style.paddingBottom = '100px';
