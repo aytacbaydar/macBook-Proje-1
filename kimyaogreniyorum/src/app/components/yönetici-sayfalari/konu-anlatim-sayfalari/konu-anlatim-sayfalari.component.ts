@@ -144,7 +144,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
         // PDF container'ın tamamını görünür hale getir
         const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
         if (pdfContainer) {
-          pdfContainer.style.height = '1400px';
+          pdfContainer.style.height = '1300px';
           pdfContainer.style.width = '100%';
           pdfContainer.style.overflow = 'auto';
           pdfContainer.style.paddingBottom = '100px';
@@ -404,17 +404,18 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
         document.body.classList.remove('silgi-aktif');
       }
     } else {
-      // Kalem ve silgi modlarını kapat, normal fare imleci kullan
+      // Kalem ve silgi modlarını kapat, el imleci kullan
       document.body.classList.remove('kalem-aktif', 'silgi-aktif');
+      document.body.classList.add('el-imleci-aktif');
       
       // Canvas imleç stilini güncelle
       const upperCanvas = document.querySelector('.canvas-container .upper-canvas') as HTMLCanvasElement;
       if (upperCanvas) {
-        upperCanvas.style.cursor = 'default'; // Normal imleç
+        upperCanvas.style.cursor = 'grab'; // El işareti
       }
     }
     
-    console.log('Çizim modu değiştirildi:', this.cizilebilir ? 'Kalem/Silgi Aktif' : 'İmleç Aktif');
+    console.log('Çizim modu değiştirildi:', this.cizilebilir ? 'Kalem/Silgi Aktif' : 'El İmleci Aktif');
   }
 
   ayarlaKalemOzellikleri(): void {
@@ -459,14 +460,16 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       this.oncekiKalemRengi = this.kalemRengi;
       this.oncekiKalemKalinligi = this.kalemKalinligi;
 
-      // Silgi modunu etkinleştir (beyaz kalem)
-      this.kalemRengi = '#FFFFFF';
-      this.kalemKalinligi = Math.max(15, this.kalemKalinligi); // Silgi en az 15px olsun
+      // Silgi modunu etkinleştir - sadece canvas üzerindeki çizimleri silecek
+      // PDF üzerinde değil canvas üzerinde çalışması için beyaz renk yerine rgba değeri kullanıyoruz
+      this.kalemRengi = 'rgba(255, 255, 255, 1)'; // Tam beyaz, tamamen opak
+      this.kalemKalinligi = Math.max(20, this.kalemKalinligi); // Silgi en az 20px olsun
       this.ayarlaKalemOzellikleri();
 
       // İmleç stilini güncelle
       document.body.classList.add('silgi-aktif');
       document.body.classList.remove('kalem-aktif');
+      document.body.classList.remove('el-imleci-aktif');
 
       // Canvas container elemanını bul ve cursor stilini güncelle
       const upperCanvas = document.querySelector('.canvas-container .upper-canvas') as HTMLCanvasElement;

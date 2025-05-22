@@ -452,7 +452,7 @@
   align-items: center;
   margin-top: 20px;
   width: 100%;
-  min-height: 1400px;
+  min-height: 1300px;
 }
 
 .pdf-yukle-mesaj {
@@ -506,7 +506,7 @@
   position: relative;
   width: 100%;
   height: auto;
-  min-height: 1400px;
+  min-height: 1300px;
   margin: 0 auto;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -607,8 +607,8 @@
 ::ng-deep pdf-viewer {
   display: block !important;
   width: 100% !important;
-  height: 1400px !important; /* Yüksekliği sabit 1400px olarak ayarla */
-  min-height: 1400px !important;
+  height: 1300px !important; /* Yüksekliği sabit 1300px olarak ayarla */
+  min-height: 1300px !important;
   background-color: white;
 
   .ng2-pdf-viewer-container {
@@ -686,11 +686,19 @@ body:not(.kalem-aktif):not(.silgi-aktif) .drawing-canvas {
 
 /* Kalem ve silgi modları için imleç stilleri */
 .kalem-aktif .drawing-canvas {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 0 24, auto;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2300AA00" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 0 24, auto;
 }
 
 .silgi-aktif .drawing-canvas {
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M15.14 3c-.51 0-1.02.2-1.41.59L2.59 14.73c-.78.77-.78 2.04 0 2.83L5.03 20h7.94l-1.72-1.72-4.47.01-1.41-1.41 8.84-8.84 1.42 1.41 1.72-1.72-5.47-5.47c-.39-.39-.9-.59-1.41-.59M21 19.5c0 .83-.67 1.5-1.5 1.5h-5.25l1.73-1.73 3.52-.01V19.5z"/></svg>') 0 24, auto;
+}
+
+.el-imleci-aktif .drawing-canvas {
+  cursor: grab !important;
+}
+
+.el-imleci-aktif .drawing-canvas:active {
+  cursor: grabbing !important;
 }
 
 .btn-tam-ekran, .btn-buyut {
