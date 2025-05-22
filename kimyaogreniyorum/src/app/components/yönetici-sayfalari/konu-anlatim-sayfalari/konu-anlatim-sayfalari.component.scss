@@ -89,6 +89,18 @@
   width: 100% !important;
   background-color: #fff !important;
   z-index: 1;
+  overflow: auto !important;
+}
+
+::ng-deep .ng2-pdf-viewer-container {
+  height: 100% !important;
+  width: 100% !important;
+  overflow: auto !important;
+}
+
+::ng-deep .page {
+  margin: 0 auto !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
 }
 
 .kalem-aktif {

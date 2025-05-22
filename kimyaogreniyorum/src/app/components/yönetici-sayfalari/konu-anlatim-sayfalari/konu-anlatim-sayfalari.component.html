@@ -76,7 +76,9 @@
         [page]="currentPage"
         [show-borders]="false"
         [external-link-target]="'blank'"
+        [zoom]="zoom"
         (after-load-complete)="pdfYuklendiHandler($event)"
+        style="height: 100% !important; width: 100% !important; position: relative; display: block;"
       ></pdf-viewer>
       <div class="canvas-wrapper">
         <canvas #canvas class="drawing-canvas"></canvas>
