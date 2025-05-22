@@ -452,7 +452,7 @@
   align-items: center;
   margin-top: 20px;
   width: 100%;
-  min-height: 1200px;
+  min-height: 1400px;
 }
 
 .pdf-yukle-mesaj {
@@ -506,7 +506,7 @@
   position: relative;
   width: 100%;
   height: auto;
-  min-height: 1200px;
+  min-height: 1400px;
   margin: 0 auto;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -628,11 +628,11 @@
     transition: transform 0.3s ease !important;
   }
   
-  /* İlk iki sayfa daha belirgin olsun */
-  .page:nth-child(1), .page:nth-child(2) {
-    transform: scale(1.05) !important;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
-    border: 2px solid #fff !important;
+  /* Tüm sayfalar aynı stili kullansın - özellikle ilk iki sayfaya özel stil kaldırıldı */
+  .page {
+    transform: scale(1.02) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid #fff !important;
     margin-top: 25px !important;
     margin-bottom: 45px !important;
   }

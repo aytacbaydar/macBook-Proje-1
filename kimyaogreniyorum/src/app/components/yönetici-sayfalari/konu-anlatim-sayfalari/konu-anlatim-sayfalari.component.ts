@@ -135,7 +135,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
         // PDF container'ın tamamını görünür hale getir
         const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
         if (pdfContainer) {
-          pdfContainer.style.height = '1200px';
+          pdfContainer.style.height = '1400px';
           pdfContainer.style.width = '100%';
           pdfContainer.style.overflow = 'auto';
           pdfContainer.style.paddingBottom = '100px';
@@ -209,7 +209,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
         const canvasEl = this.canvasElement.nativeElement;
         // Tüm sayfaları görebilmek için yeterli yükseklik belirle
         canvasEl.width = totalWidth;
-        canvasEl.height = Math.max(totalHeight, this.totalPages * 1400); // Her sayfa için yeterli alan
+        canvasEl.height = Math.max(totalHeight, this.totalPages * 2000); // Her sayfa için yeterli alan arttırıldı
 
         console.log('Canvas boyutları:', totalWidth, 'x', totalHeight);
 
