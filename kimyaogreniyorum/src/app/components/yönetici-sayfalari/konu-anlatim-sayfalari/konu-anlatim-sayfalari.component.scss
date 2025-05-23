@@ -1,684 +1,154 @@
 .konu-anlatim-container {
-  font-family: 'Arial', sans-serif;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
 }
 
 .baslik {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #3c3c3c;
+  font-size: 1.5rem;
+  margin: 0;
+  padding: 10px 0;
+  color: #333;
 }
 
 .kontrol-paneli {
-  background-color: #ffffff;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 20px;
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  justify-content: space-between;
   align-items: center;
-  border: 1px solid #eaeaea;
+  justify-content: space-between;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .arac-grubu {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  border: 1px solid #eaeaea;
-}
-
-.btn-modern {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background-color: #ffffff;
-  color: #333;
-  border: 1px solid #dedede;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-
-  &:hover {
-    background-color: #f5f5f5;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  }
-
-  &.aktif {
-    background-color: #e6f7ff;
-    border-color: #91d5ff;
-    color: #1890ff;
-    box-shadow: 0 0 8px rgba(24, 144, 255, 0.2);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-
-  .ikon {
-    font-size: 16px;
-  }
-
-  &.temizle {
-    background-color: #fff0f0;
-    color: #ff4d4f;
-    border-color: #ffccc7;
-
-    &:hover {
-      background-color: #fff0f0;
-    }
-  }
-
-  &.kaydet {
-    background-color: #f6ffed;
-    color: #52c41a;
-    border-color: #b7eb8f;
-
-    &:hover {
-      background-color: #f6ffed;
-    }
-  }
-
-  &.ekran {
-    background-color: #f9f0ff;
-    color: #722ed1;
-    border-color: #d3adf7;
-
-    &:hover {
-      background-color: #f9f0ff;
-    }
-  }
-
-  &.sayfa {
-    background-color: #e6f7ff;
-    color: #1890ff;
-    border-color: #91d5ff;
-
-    &:hover {
-      background-color: #e6f7ff;
-    }
-  }
-}
-
-.boyut-secici {
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #d9d9d9;
-  font-size: 14px;
-  background-color: white;
-  cursor: pointer;
-  min-width: 120px;
-
-  &:focus {
-    outline: none;
-    border-color: #40a9ff;
-    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
-  }
-}
-
-.kalem-boyutu {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  label {
-    font-size: 14px;
-    color: #666;
-    white-space: nowrap;
-  }
-}
-
-// PDF ve Canvas
-.pdf-container {
-  position: relative;
-  width: 100%;
-  height: calc(100vh - 200px);
-  margin: 0 auto;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  background-color: #f0f0f0;
-}
-
-.pdf-container.tam-ekran {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 1000;
-  margin: 0;
-  border: none;
-  border-radius: 0;
-}
-
-.canvas-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 10;
-  pointer-events: all;
-}
-
-.drawing-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 10;
-}
-
-::ng-deep .canvas-container {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  z-index: 10 !important;
-  pointer-events: auto !important;
-}
-
-::ng-deep canvas.upper-canvas {
-  pointer-events: auto !important;
-}
-
-/* PDF görüntüleyici stilleri */
-::ng-deep pdf-viewer {
-  position: relative;
-  display: block !important;
-  height: 100% !important;
-  width: 100% !important;
-  background-color: #fff !important;
-  z-index: 1;
-  overflow: auto !important;
-}
-
-::ng-deep .ng2-pdf-viewer-container {
-  height: 100% !important;
-  width: 100% !important;
-  overflow: auto !important;
-}
-
-::ng-deep .page {
-  margin: 0 auto !important;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
-}
-
-.kalem-aktif {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 0 24, auto;
-}
-
-.silgi-aktif {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M15.14 3c-.51 0-1.02.2-1.41.59L2.59 14.73c-.78.77-.78 2.04 0 2.83L5.03 20h7.94l-1.72-1.72-4.47.01-1.41-1.41 8.84-8.84 1.42 1.41 1.72-1.72-5.47-5.47c-.39-.39-.9-.59-1.41-.59M21 19.5c0 .83-.67 1.5-1.5 1.5h-5.25l1.73-1.73 3.52-.01V19.5z"/></svg>') 0 24, auto;
-}
-
-.konu-anlatim-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.baslik {
-  color: #2c3e50;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.kontrol-paneli {
-  display: flex;
+  margin: 5px 10px;
   flex-wrap: wrap;
-  gap: 15px;
-  margin-bottom: 20px;
-  padding: 15px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.pdf-secici {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.btn-sec {
-  display: inline-block;
-  padding: 8px 15px;
-  background-color: #4285f4;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #3367d6;
-  }
-}
-
-.gizli {
-  display: none;
-}
-
-.secilen-dosya {
-  font-size: 14px;
-  color: #555;
-}
-
-.cizim-araclari {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.kalem-boyutu {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0 10px;
-
-  label {
-    font-size: 14px;
-    white-space: nowrap;
-  }
-
-  input[type="range"] {
-    width: 100px;
-  }
-
-  span {
-    font-size: 12px;
-    min-width: 40px;
-    text-align: center;
-  }
-}
-
-.btn-arac {
-  padding: 8px 15px;
-  background-color: #34a853;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #2e8b47;
-  }
-
-  &.aktif {
-    background-color: #27803f;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-  }
-
-  .ikon-silgi, .ikon-kalem {
-    margin-right: 5px;
-    font-size: 16px;
-  }
 }
 
 .renk-secici {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  margin-right: 10px;
 }
 
 .renk-btn {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  border: 2px solid #ddd;
+  margin: 0 5px;
+  border: 2px solid #ccc;
   cursor: pointer;
-  transition: transform 0.2s, border-color 0.2s;
-
-  &:hover {
-    transform: scale(1.1);
-  }
-
-  &.aktif {
-    border-color: #333;
-    transform: scale(1.1);
-    box-shadow: 0 0 5px rgba(0,0,0,0.3);
-  }
-
-  &.kirmizi {
-    background-color: #FF0000;
-  }
-
-  &.mavi {
-    background-color: #0000FF;
-  }
-
-  &.yesil {
-    background-color: #00AA00;
-  }
-
-  &.siyah {
-    background-color: #000000;
-  }
+  transition: transform 0.2s;
 }
 
-.sayfa-kontrolleri {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.renk-btn.aktif {
+  transform: scale(1.2);
+  border-color: #333;
 }
 
-.btn-sayfa {
-  padding: 8px 15px;
-  background-color: #fbbc05;
-  color: white;
+.renk-btn.kirmizi { background-color: #FF0000; }
+.renk-btn.mavi { background-color: #0000FF; }
+.renk-btn.yesil { background-color: #00AA00; }
+.renk-btn.siyah { background-color: #000000; }
+
+.btn-modern {
+  padding: 8px 12px;
   border: none;
+  background-color: #fff;
+  color: #333;
   border-radius: 4px;
+  margin: 0 5px;
   cursor: pointer;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #e6a700;
-  }
-
-  &:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
-}
-
-.sayfa-bilgisi {
-  font-size: 14px;
-  color: #555;
-}
-
-.kaydetme-bolumu {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-left: auto;
+  font-size: 14px;
+}
+
+.btn-modern:hover {
+  background-color: #f0f0f0;
+}
+
+.btn-modern.aktif {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-modern.temizle {
+  background-color: #f44336;
+  color: white;
+}
+
+.btn-modern.kaydet {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.btn-modern.indir {
+  background-color: #007bff;
+  color: white;
+}
+
+.ikon {
+  margin-right: 5px;
+  font-style: normal;
+}
+
+.boyut-secici {
+  padding: 5px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  margin-left: 5px;
 }
 
 .grup-secici {
   padding: 8px;
   border-radius: 4px;
   border: 1px solid #ccc;
-}
-
-.btn-kaydet {
-  padding: 8px 15px;
-  background-color: #ea4335;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #d33426;
-  }
-
-  &:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
+  margin-right: 10px;
+  min-width: 150px;
 }
 
 .calisma-alani {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
-  width: 100%;
-  min-height: 1300px;
-}
-
-.pdf-yukle-mesaj {
-  padding: 50px;
-  text-align: center;
-  background-color: #f9f9f9;
-  border: 2px dashed #ccc;
-  border-radius: 8px;
-  color: #777;
-  font-size: 18px;
-}
-
-.buyuk-dosya-uyarisi {
-  padding: 30px;
-  text-align: left;
-  background-color: #fff3e0;
-  border: 2px solid #ffcc80;
-  border-radius: 8px;
-  color: #e65100;
-  font-size: 16px;
-  max-width: 800px;
-  margin: 0 auto;
-
-  p {
-    margin-bottom: 15px;
-  }
-
-  ul {
-    margin-bottom: 20px;
-    padding-left: 20px;
-  }
-
-  .btn-optimize {
-    padding: 10px 20px;
-    background-color: #ff9800;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s;
-
-    &:hover {
-      background-color: #f57c00;
-    }
-  }
-}
-
-/* Modern PDF konteyner düzeni */
-.pdf-container {
+  flex: 1;
+  overflow: auto;
   position: relative;
-  width: 100%;
-  height: auto;
-  min-height: 1300px;
-  margin: 0 auto;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  overflow: auto !important; /* Her iki yönde scroll yapılabilsin */
-  background-color: #f0f0f0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  padding-bottom: 60px; /* Footer için yer bırak */
-
-  /* Scrollbar stilleri */
-  &::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 5px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-  }
+  padding: 20px;
+  background-color: #f9f9f9;
 }
 
-/* PDF Footer Stili */
-.pdf-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-color: rgba(245, 245, 245, 0.95);
-  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
-  padding: 10px 0;
-  z-index: 20;
-  backdrop-filter: blur(5px);
-  border-top: 1px solid #ddd;
-}
-
-.tam-ekran-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  z-index: 1010;
-}
-
-.footer-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  padding: 0 15px;
-  flex-wrap: wrap;
-}
-
-.btn-sayfa {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background-color: #e6f7ff;
-  color: #1890ff;
-  border: 1px solid #91d5ff;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover:not(:disabled) {
-    background-color: #91d5ff;
-    transform: translateY(-2px);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
-.pdf-container.tam-ekran {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 1000;
-  border: none;
-  border-radius: 0;
-  overflow: auto; /* Tam ekranda da scroll etmeyi aktif tut */
-}
-
-.pdf-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+.beyaz-tahta-container {
+  position: relative;
   height: 100%;
-  z-index: 5;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
-::ng-deep pdf-viewer {
-  display: block !important;
-  width: 100% !important;
-  height: auto !important; /* Height auto olarak değiştirildi */
-  min-height: 1300px !important;
-  background-color: white;
-
-  .ng2-pdf-viewer-container {
-    overflow: visible !important;
-    padding-bottom: 500px !important; /* Alt kısımda daha fazla boşluk bırak */
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    height: auto !important; /* Height auto olarak değiştirildi */
-    min-height: 1400px !important;
-  }
-
-  .page {
-    margin: 30px auto 60px auto !important; /* Sayfaların arası daha fazla açıldı */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    width: 1200px !important; /* Sabit 1200px genişlik */
-    max-width: 90% !important; /* Mobil görünüm için maksimum genişlik */
-    border-radius: 2px !important;
-    transition: transform 0.3s ease !important;
-    position: relative !important; /* Position relative eklendi */
-    z-index: 5 !important; /* Z-index eklendi */
-  }
-
-  /* Tüm sayfalar aynı stili kullansın - özellikle ilk iki sayfaya özel stil kaldırıldı */
-  .page {
-    transform: scale(1.02) !important;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
-    border: 1px solid #fff !important;
-    margin-top: 25px !important;
-    margin-bottom: 45px !important;
-  }
+.beyaz-tahta {
+  background-color: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  height: 1300px;
+  margin: 0 auto;
+  display: none;
+  position: relative;
 }
 
-/* Tüm sayfaların görünmesi için sayfa görünüm ayarları */
-::ng-deep .textLayer {
-  opacity: 1 !important;
-}
-
-::ng-deep .canvasWrapper {
-  overflow: visible !important;
-}
-
-/* Sayfaların tam görünmesi için ekstra stiller */
-::ng-deep .pdfViewer .page {
-  display: block !important;
-  width: 1200px !important;
-  max-width: 100% !important; /* Responsive davranış için */
-  height: auto !important;
-  margin: 20px auto !important;
-  scroll-margin-top: 50px; /* Sayfa değiştirirken üstte boşluk bırak */
-  z-index: 1 !important; /* Sayfaların render sırasını düzelt */
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
-  border-radius: 4px !important;
-  page-break-after: always !important;
-  padding-bottom: 50px !important;
-}
-
-/* Özel imleç modlarını belirginleştir */
-body:not(.kalem-aktif):not(.silgi-aktif) .drawing-canvas {
-  cursor: default !important;
-}
-
-/* Tüm sayfaların görünmesi için ekstra düzenleme */
-::ng-deep .pdfViewer {
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 100px;
+.aktif-sayfa {
+  display: block;
 }
 
 .drawing-canvas {
@@ -687,83 +157,63 @@ body:not(.kalem-aktif):not(.silgi-aktif) .drawing-canvas {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 10;
-  pointer-events: auto;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 0 24, auto;
 }
 
-/* Kalem ve silgi modları için imleç stilleri */
-.kalem-aktif .drawing-canvas {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2300AA00" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 0 24, auto;
+.sayfa-navigasyon {
+  position: sticky;
+  bottom: 0;
+  background-color: #f5f5f5;
+  border-top: 1px solid #ddd;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.silgi-aktif .drawing-canvas {
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sayfa-bilgisi {
+  margin: 0 15px;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* Silgi ve kalem özel stilleri */
+body.kalem-aktif .drawing-canvas {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 0 24, auto;
+}
+
+body.silgi-aktif .drawing-canvas {
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M15.14 3c-.51 0-1.02.2-1.41.59L2.59 14.73c-.78.77-.78 2.04 0 2.83L5.03 20h7.94l-1.72-1.72-4.47.01-1.41-1.41 8.84-8.84 1.42 1.41 1.72-1.72-5.47-5.47c-.39-.39-.9-.59-1.41-.59M21 19.5c0 .83-.67 1.5-1.5 1.5h-5.25l1.73-1.73 3.52-.01V19.5z"/></svg>') 0 24, auto;
 }
 
-.el-imleci-aktif .drawing-canvas,
-.el-imleci-aktif ::ng-deep pdf-viewer,
-.el-imleci-aktif .pdf-container {
-  cursor: grab !important;
+body.el-imleci-aktif .drawing-canvas {
+  cursor: grab;
 }
 
-.el-imleci-aktif .drawing-canvas:active,
-.el-imleci-aktif ::ng-deep pdf-viewer:active,
-.el-imleci-aktif .pdf-container:active {
-  cursor: grabbing !important;
-}
-
-.btn-tam-ekran, .btn-buyut {
-  display: flex;
-  align-items: center;
-  padding: 8px 15px;
-  background-color: #3498db;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #2980b9;
-  }
-
-  .ekran-ikonu, .zoom-ikonu {
-    margin-left: 5px;
-    font-size: 16px;
-  }
-}
-
-/* Tam ekran modu için body düzenlemesi */
-body.tam-ekran-aktif {
-  overflow: hidden;
-}
-
-/* Mobil cihazlar için düzenleme */
 @media (max-width: 768px) {
-  .kontrol-paneli {
-    flex-direction: column;
-    gap: 10px;
+  .kontrol-paneli, .sayfa-navigasyon {
+    padding: 5px;
   }
 
-  .kaydetme-bolumu {
-    margin-left: 0;
+  .arac-grubu {
+    margin: 3px;
+  }
+
+  .btn-modern {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+
+  .sayfa-bilgisi {
+    font-size: 14px;
+    margin: 0 5px;
   }
 }
-
-.btn-modern.kaydet {
-    background-color: #4CAF50;
-    color: white;
-    &:disabled {
-      background-color: #cccccc;
-      cursor: not-allowed;
-    }
-  }
-
-  .btn-modern.indir {
-    background-color: #2196F3;
-    color: white;
-    &:disabled {
-      background-color: #cccccc;
-      cursor: not-allowed;
-    }
-  }
