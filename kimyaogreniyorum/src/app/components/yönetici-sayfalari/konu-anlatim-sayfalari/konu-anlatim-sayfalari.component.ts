@@ -1,7 +1,6 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, AfterViewInit, HostListener } from '@angular/core';
 import * as fabric from 'fabric';
 import { FormsModule } from '@angular/forms';
-import { PdfViewerModule } from 'ng2-pdf-viewer';
 import { NgIf, NgFor } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { jsPDF } from 'jspdf';
@@ -11,47 +10,46 @@ import { jsPDF } from 'jspdf';
   templateUrl: './konu-anlatim-sayfalari.component.html',
   styleUrls: ['./konu-anlatim-sayfalari.component.scss'],
   standalone: true,
-  imports: [FormsModule, PdfViewerModule, NgIf, NgFor, HttpClientModule]
+  imports: [FormsModule, NgIf, NgFor, HttpClientModule]
 })
 export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
-  @ViewChild('canvas') canvasElement!: ElementRef<HTMLCanvasElement>;
-  pdfSrc: string = '';
-  secilenPDF: string = '';
-  pdfYuklendi: boolean = false;
-  canvas!: fabric.Canvas;
-  cizilebilir: boolean = true;
-  silgiModu: boolean = false;
-  oncekiKalemRengi: string = '#000000';
-  oncekiKalemKalinligi: number = 2;
+  canvasInstances: fabric.Canvas[] = [];
+  sayfalar: any[] = [{}]; // Başlangıçta bir sayfa olsun
   currentPage: number = 1;
-  totalPages: number = 0;
+  totalPages: number = 1;
   ogrenciGruplari: string[] = ['9A Sınıfı', '10B Sınıfı', '11C Sınıfı', '12D Sınıfı'];
   secilenGrup: string = '';
   kaydetmeIsleminde: boolean = false;
   kalemRengi: string = '#000000';
   kalemKalinligi: number = 4; // Varsayılan olarak normal kalınlık
   kalemKalinlikSecenekleri: number[] = [2, 4, 8, 12, 16]; // İnce, normal, kalın, çok kalın, ekstra kalın
-  dosyaBoyutuUyarisi: boolean = false;
-  maxDosyaBoyutu: number = 16 * 1024 * 1024; // 16 MB
-  tamEkranModu: boolean = false;
-  zoom: number = 1.0; // PDF yakınlaştırma oranı
+  cizilebilir: boolean = true;
+  silgiModu: boolean = false;
+  oncekiKalemRengi: string = '#000000';
+  oncekiKalemKalinligi: number = 2;
 
   constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
-    // PDF container sınıfını ekleyerek kalem modunu aktifleştir
+    // Kalem modunu aktifleştir
     document.body.classList.add('kalem-aktif');
   }
 
   ngAfterViewInit(): void {
-    // Kalem kurulumu için düzenle (PDF yükleme bekleniyor)
+    // İlk canvas'ı oluştur
+    setTimeout(() => {
+      this.canvasOlustur(1);
+    }, 500);
   }
 
   @HostListener('window:resize', ['$event'])
-  onResize(event: Event) {
-    if (this.canvas && this.pdfYuklendi) {
-      this.canvasBoyutlandir();
-    }
+  onResize() {
+    // Tüm canvas'ları yeniden boyutlandır
+    this.canvasInstances.forEach((canvas, index) => {
+      if (canvas) {
+        this.canvasBoyutlandir(index + 1);
+      }
+    });
   }
 
   // Hızlı renk seçimi için metod
@@ -65,260 +63,81 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     document.body.classList.remove('silgi-aktif');
   }
 
-  pdfSecildi(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      this.secilenPDF = file.name;
+  canvasOlustur(sayfaNo: number): void {
+    try {
+      const canvasId = `canvas-${sayfaNo}`;
+      const canvasEl = document.getElementById(canvasId) as HTMLCanvasElement;
 
-      // Dosya boyutu kontrolü
-      if (file.size > this.maxDosyaBoyutu) {
-        this.dosyaBoyutuUyarisi = true;
-        alert(`Dikkat: Seçtiğiniz PDF dosyası ${Math.round(file.size / (1024 * 1024))} MB boyutundadır. 
-               Büyük dosyalar yavaş yüklenebilir veya performans sorunlarına neden olabilir.
-               Devam etmek için 'Optimize Et ve Yükle' düğmesine tıklayın.`);
+      if (!canvasEl) {
+        console.error(`Canvas element ${canvasId} bulunamadı`);
         return;
       }
 
-      this.pdfDosyasiniYukle(file);
-    }
-  }
-
-  pdfDosyasiniYukle(file: File): void {
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      console.log('PDF dosyası yükleniyor...');
-
-      try {
-        const pdfData = e.target.result;
-
-        // PDF veri URL'i ayarla
-        this.pdfSrc = pdfData;
-
-        // PDF yükleme durumunu güncelle
-        this.pdfYuklendi = true;
-        this.dosyaBoyutuUyarisi = false;
-
-        console.log('PDF görüntüleyici hazırlanıyor...');
-      } catch (error) {
-        console.error('PDF işleme hatası:', error);
-        alert('PDF dosyası işlenirken bir hata oluştu. Lütfen tekrar deneyin.');
+      // Canvas boyutlarını ayarla
+      const container = canvasEl.parentElement;
+      if (container) {
+        canvasEl.width = container.clientWidth;
+        canvasEl.height = container.clientHeight;
       }
-    };
 
-    reader.onerror = (error) => {
-      console.error('PDF yükleme hatası:', error);
-      alert('PDF dosyası yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
-    };
+      // Yeni fabric canvas oluştur
+      const canvas = new fabric.Canvas(canvasId, {
+        isDrawingMode: true,
+        width: canvasEl.width,
+        height: canvasEl.height,
+        selection: false,
+        renderOnAddRemove: true,
+        interactive: true,
+        backgroundColor: '#ffffff'
+      });
 
-    reader.readAsDataURL(file);
-  }
+      // Canvas array'e ekle veya güncelle
+      if (this.canvasInstances.length < sayfaNo) {
+        this.canvasInstances.push(canvas);
+      } else {
+        this.canvasInstances[sayfaNo - 1] = canvas;
+      }
 
-  optimizeEtVeYukle(): void {
-    const fileInput = document.getElementById('pdf-yukle') as HTMLInputElement;
-    if (fileInput.files && fileInput.files[0]) {
-      this.pdfDosyasiniYukle(fileInput.files[0]);
+      // Kalem özelliklerini ayarla
+      this.ayarlaKalemOzellikleri(sayfaNo);
+
+      console.log(`Canvas ${sayfaNo} oluşturuldu`, canvas);
+    } catch (error) {
+      console.error(`Canvas ${sayfaNo} oluşturma hatası:`, error);
     }
   }
 
-  pdfYuklendiHandler(event: any): void {
-    this.totalPages = event.numPages;
-    console.log('PDF sayfa sayısı:', this.totalPages);
-    
-    // PDF doğru yüklendiğini garanti et
-    const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
-    if (pdfContainer) {
-      // Yükseklik ayarlaması
-      const minHeight = this.totalPages * 800 + 500; // Her sayfa için minimum 800px + extra
-      pdfContainer.style.minHeight = `${minHeight}px`;
-      console.log('PDF konteyner minimum yüksekliği:', minHeight);
-    }
-    
-    // Tüm sayfaları göstermek için currentPage değerini 1 olarak ayarla
-    // PDF viewer'ın [show-all]="true" özelliği zaten tüm sayfaları gösterecektir
-    this.currentPage = 1;
+  canvasBoyutlandir(sayfaNo: number): void {
+    const canvas = this.canvasInstances[sayfaNo - 1];
+    if (!canvas) return;
 
-    // Canvas oluştur (PDF tamamen yüklendikten sonra)
+    try {
+      const canvasEl = document.getElementById(`canvas-${sayfaNo}`) as HTMLCanvasElement;
+      const container = canvasEl.parentElement;
+
+      if (container) {
+        // Canvas boyutlarını güncelle
+        canvas.setWidth(container.clientWidth);
+        canvas.setHeight(container.clientHeight);
+        canvas.renderAll();
+      }
+    } catch (error) {
+      console.error(`Canvas ${sayfaNo} boyutlandırma hatası:`, error);
+    }
+  }
+
+  sayfaEkle(): void {
+    this.sayfalar.push({});
+    this.totalPages = this.sayfalar.length;
+
+    // Yeni sayfaya geç
+    this.currentPage = this.totalPages;
+    this.sayfayaGit(this.currentPage);
+
+    // Yeni sayfanın canvas'ını oluştur
     setTimeout(() => {
-      this.canvasOlustur();
-
-      // Canvas'ı yeniden olusturmak için ekran yenilenmesine izin ver
-      setTimeout(() => {
-        // PDF container'ın tamamını görünür hale getir
-        const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
-        if (pdfContainer) {
-          pdfContainer.style.height = '1300px';
-          pdfContainer.style.width = '100%';
-          pdfContainer.style.overflow = 'auto';
-          pdfContainer.style.paddingBottom = '100px';
-        }
-
-        // Canvas yapılandırmasını güçlendir
-        const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
-        if (canvasContainer) {
-          canvasContainer.style.pointerEvents = 'auto';
-          canvasContainer.style.zIndex = '100';
-
-          // Canvas elementlerini yapılandır
-          const lowerCanvas = document.querySelector('.lower-canvas') as HTMLCanvasElement;
-          const upperCanvas = document.querySelector('.upper-canvas') as HTMLCanvasElement;
-
-          if (lowerCanvas) {
-            lowerCanvas.style.pointerEvents = 'auto';
-          }
-
-          if (upperCanvas) {
-            upperCanvas.style.pointerEvents = 'auto';
-            upperCanvas.style.zIndex = '100';
-            upperCanvas.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>\') 0 24, auto';
-          }
-        }
-
-        // Kalem özelliklerini ayarla
-        this.ayarlaKalemOzellikleri();
-
-        // Kalem modunu etkinleştir
-        this.cizilebilir = true;
-        if (this.canvas) {
-          this.canvas.isDrawingMode = true;
-        }
-      }, 500);
-    }, 1000);
-  }
-
-  canvasOlustur(): void {
-    if (!this.pdfYuklendi) return;
-
-    try {
-      console.log('Canvas oluşturma başlıyor...');
-
-      // PDF konteyner boyutlarını al
-      const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
-      if (!pdfContainer) {
-        console.error('PDF container bulunamadı');
-        return;
-      }
-
-      // Önce PDF viewer elementini bul ve konumunu kontrol et
-      const pdfViewer = document.querySelector('pdf-viewer') as HTMLElement;
-      if (!pdfViewer) {
-        console.error('PDF viewer bulunamadı');
-        return;
-      }
-
-      // İçerik boyutlarını al (scrollWidth/Height içeriğin tam boyutunu verir)
-      const totalWidth = Math.max(pdfContainer.scrollWidth, pdfContainer.clientWidth);
-      const totalHeight = Math.max(pdfContainer.scrollHeight, pdfContainer.clientHeight);
-
-      // PDF görüntüleme boyutlarını düzenle
-      pdfViewer.style.width = '100%';
-      pdfViewer.style.height = 'auto';
-      pdfViewer.style.minHeight = '100%';
-
-      // Tam ekran modundaysa biraz bekle boyutlar güncellensin
-      setTimeout(() => {
-        // Canvas elementi boyutlandırma - tüm PDF sayfalarını kapsayacak şekilde
-        const canvasEl = this.canvasElement.nativeElement;
-        // Tüm sayfaları görebilmek için daha fazla yükseklik belirle
-        canvasEl.width = totalWidth;
-        canvasEl.height = Math.max(totalHeight, this.totalPages * 5000); // Her sayfa için daha fazla alan - değer artırıldı
-
-        console.log('Canvas boyutları:', totalWidth, 'x', totalHeight);
-
-        // Eğer önceki canvas varsa temizle
-        if (this.canvas) {
-          this.canvas.dispose();
-        }
-
-        // Yeni fabric canvas oluştur
-        this.canvas = new fabric.Canvas(canvasEl, {
-          isDrawingMode: true,
-          width: totalWidth,
-          height: totalHeight,
-          selection: false,
-          renderOnAddRemove: true,
-          interactive: true
-        });
-
-        // Kalem özelliklerini ayarla
-        this.ayarlaKalemOzellikleri();
-
-        // Canvas z-index ve pointer events ayarı
-        const canvasContainer = document.querySelector('.canvas-container') as HTMLElement;
-        if (canvasContainer) {
-          canvasContainer.style.position = 'absolute';
-          canvasContainer.style.top = '0';
-          canvasContainer.style.left = '0';
-          canvasContainer.style.width = '100%';
-          canvasContainer.style.height = '100%';
-          canvasContainer.style.zIndex = '10';
-          canvasContainer.style.pointerEvents = 'auto';
-
-          // Canvas'ı PDF içeriğine tam olarak yerleştir
-          canvasContainer.style.overflow = 'visible';
-
-          // Canvas'ı daha dominant hale getir
-          const lowerCanvas = document.querySelector('.canvas-container .lower-canvas') as HTMLCanvasElement;
-          const upperCanvas = document.querySelector('.canvas-container .upper-canvas') as HTMLCanvasElement;
-
-          if (lowerCanvas) {
-            lowerCanvas.style.pointerEvents = 'auto';
-            lowerCanvas.style.position = 'absolute';
-            lowerCanvas.style.top = '0';
-            lowerCanvas.style.left = '0';
-          }
-
-          if (upperCanvas) {
-            upperCanvas.style.pointerEvents = 'auto';
-            upperCanvas.style.zIndex = '100';
-            upperCanvas.style.position = 'absolute';
-            upperCanvas.style.top = '0';
-            upperCanvas.style.left = '0';
-            upperCanvas.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>\') 0 24, auto';
-          }
-        }
-
-        console.log('Canvas oluşturuldu ve yerleştirildi');
-
-        // Kalem modunu aktifleştir
-        this.cizilebilir = true;
-        this.canvas.isDrawingMode = true;
-        document.body.classList.add('kalem-aktif');
-        document.body.classList.remove('silgi-aktif');
-
-        // Canvas scroll işlemleri PDF container ile senkronize olsun
-        pdfContainer.addEventListener('scroll', () => {
-          if (canvasContainer) {
-            canvasContainer.style.top = `-${pdfContainer.scrollTop}px`;
-            canvasContainer.style.left = `-${pdfContainer.scrollLeft}px`;
-          }
-        });
-      }, 500);
-
-    } catch (error) {
-      console.error('Canvas oluşturma hatası:', error);
-    }
-  }
-
-  canvasBoyutlandir(): void {
-    if (!this.canvas || !this.pdfYuklendi) return;
-
-    try {
-      // PDF konteyner boyutlarını al
-      const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
-      if (!pdfContainer) return;
-
-      const width = pdfContainer.clientWidth;
-      const height = pdfContainer.clientHeight;
-
-      // Canvas boyutlarını güncelle
-      this.canvas.setWidth(width);
-      this.canvas.setHeight(height);
-      this.canvas.renderAll();
-
-      console.log('Canvas boyutları güncellendi:', width, 'x', height);
-    } catch (error) {
-      console.error('Canvas boyutlandırma hatası:', error);
-    }
+      this.canvasOlustur(this.currentPage);
+    }, 100);
   }
 
   // Sayfa navigasyon fonksiyonları
@@ -351,49 +170,44 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   }
 
   sayfayaGit(sayfa: number): void {
-    // Önce currentPage değerini güncelle
+    // Aktif sayfa sınıfını değiştir
+    const sayfalar = document.querySelectorAll('.beyaz-tahta');
+    sayfalar.forEach((element, index) => {
+      if (index + 1 === sayfa) {
+        element.classList.add('aktif-sayfa');
+      } else {
+        element.classList.remove('aktif-sayfa');
+      }
+    });
+
     this.currentPage = sayfa;
 
-    try {
-      // Sayfayı bul ve kaydır
+    // Eğer bu sayfanın canvas'ı yoksa oluştur
+    if (!this.canvasInstances[sayfa - 1]) {
       setTimeout(() => {
-        // Sayfa elementini seç
-        const sayfaElement = document.querySelector(`.page[data-page-number="${sayfa}"]`) as HTMLElement;
-
-        if (sayfaElement) {
-          // Sayfaya kaydır
-          const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
-          if (pdfContainer) {
-            pdfContainer.scrollTop = sayfaElement.offsetTop - 20;
-          }
-
-          // Önceki sayfaları kaydırmak için alternatif yaklaşım
-          sayfaElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-          console.log('Sayfa değiştirildi:', sayfa);
-        } else {
-          console.error('Sayfa elementi bulunamadı:', sayfa);
-        }
-
-        // Canvas'ı temizle
-        this.temizleCanvas();
-      }, 200);
-    } catch (error) {
-      console.error('Sayfa değiştirme hatası:', error);
+        this.canvasOlustur(sayfa);
+      }, 100);
+    } else {
+      // Kalem özelliklerini güncelle
+      this.ayarlaKalemOzellikleri(sayfa);
     }
   }
 
-  temizleCanvas(): void {
-    if (this.canvas) {
-      this.canvas.clear();
+  temizleSayfa(): void {
+    const canvas = this.canvasInstances[this.currentPage - 1];
+    if (canvas) {
+      canvas.clear();
+      canvas.backgroundColor = '#ffffff';
+      canvas.renderAll();
     }
   }
 
   toggleCizim(): void {
     this.cizilebilir = !this.cizilebilir;
 
-    if (this.canvas) {
-      this.canvas.isDrawingMode = this.cizilebilir;
+    const canvas = this.canvasInstances[this.currentPage - 1];
+    if (canvas) {
+      canvas.isDrawingMode = this.cizilebilir;
     }
 
     // İmleç stilini güncelle
@@ -411,56 +225,40 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       // Kalem ve silgi modlarını kapat, el imleci kullan
       document.body.classList.remove('kalem-aktif', 'silgi-aktif');
       document.body.classList.add('el-imleci-aktif');
-      
-      // Canvas imleç stilini güncelle
-      const upperCanvas = document.querySelector('.canvas-container .upper-canvas') as HTMLCanvasElement;
-      if (upperCanvas) {
-        upperCanvas.style.cursor = 'grab'; // El işareti 
-        
-        // PDF viewer elementinin de cursor'ını güncelle
-        const pdfViewerElement = document.querySelector('pdf-viewer') as HTMLElement;
-        if (pdfViewerElement) {
-          pdfViewerElement.style.cursor = 'grab';
-        }
-      }
     }
-    
+
     console.log('Çizim modu değiştirildi:', this.cizilebilir ? 'Kalem/Silgi Aktif' : 'El İmleci Aktif');
   }
 
-  ayarlaKalemOzellikleri(): void {
-    if (!this.canvas) {
-      console.log('Canvas henüz hazır değil');
+  ayarlaKalemOzellikleri(sayfaNo?: number): void {
+    const pageNo = sayfaNo || this.currentPage;
+    const canvas = this.canvasInstances[pageNo - 1];
+
+    if (!canvas) {
+      console.log(`Canvas ${pageNo} henüz hazır değil`);
       return;
     }
 
     // Canvas'ı çizim moduna al
-    this.canvas.isDrawingMode = true;
-    this.cizilebilir = true;
+    canvas.isDrawingMode = this.cizilebilir;
 
     // Brush'ı kontrol et
-    if (!this.canvas.freeDrawingBrush) {
-      this.canvas.freeDrawingBrush = new fabric.PencilBrush(this.canvas);
+    if (!canvas.freeDrawingBrush) {
+      canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
     }
 
     // Kalem ayarlarını güncelle
-    this.canvas.freeDrawingBrush.color = this.kalemRengi;
-    this.canvas.freeDrawingBrush.width = this.kalemKalinligi;
+    canvas.freeDrawingBrush.color = this.kalemRengi;
+    canvas.freeDrawingBrush.width = this.kalemKalinligi;
 
     // İnce çizgiler için ek ayarlar (fabric.js versiyonuna göre)
     try {
-      // getInk özelliği bazı fabric.js versiyonlarında olmayabilir
-      // bu yüzden hata kontrolü ile yaklaşıyoruz
-      if (this.canvas.freeDrawingBrush.hasOwnProperty('getInk')) {
-        (this.canvas.freeDrawingBrush as any).getInk = false;
+      if (canvas.freeDrawingBrush.hasOwnProperty('getInk')) {
+        (canvas.freeDrawingBrush as any).getInk = false;
       }
     } catch (e) {
       console.log('getInk özelliği bu fabric.js versiyonunda desteklenmiyor');
     }
-
-    // Log info
-    console.log('Kalem ayarları güncellendi:', this.kalemRengi, this.kalemKalinligi);
-    console.log('Canvas çizim modu:', this.canvas.isDrawingMode);
   }
 
   silgiModunuAc(): void {
@@ -470,9 +268,8 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       this.oncekiKalemRengi = this.kalemRengi;
       this.oncekiKalemKalinligi = this.kalemKalinligi;
 
-      // Silgi modunu etkinleştir - sadece canvas üzerindeki çizimleri silecek
-      // PDF üzerinde değil canvas üzerinde çalışması için beyaz renk yerine rgba değeri kullanıyoruz
-      this.kalemRengi = 'rgba(255, 255, 255, 1)'; // Tam beyaz, tamamen opak
+      // Silgi modunu etkinleştir - beyaz renk ile silme efekti
+      this.kalemRengi = '#ffffff';
       this.kalemKalinligi = Math.max(20, this.kalemKalinligi); // Silgi en az 20px olsun
       this.ayarlaKalemOzellikleri();
 
@@ -480,12 +277,6 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       document.body.classList.add('silgi-aktif');
       document.body.classList.remove('kalem-aktif');
       document.body.classList.remove('el-imleci-aktif');
-
-      // Canvas container elemanını bul ve cursor stilini güncelle
-      const upperCanvas = document.querySelector('.canvas-container .upper-canvas') as HTMLCanvasElement;
-      if (upperCanvas) {
-        upperCanvas.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23000000" d="M15.14 3c-.51 0-1.02.2-1.41.59L2.59 14.73c-.78.77-.78 2.04 0 2.83L5.03 20h7.94l-1.72-1.72-4.47.01-1.41-1.41 8.84-8.84 1.42 1.41 1.72-1.72-5.47-5.47c-.39-.39-.9-.59-1.41-.59M21 19.5c0 .83-.67 1.5-1.5 1.5h-5.25l1.73-1.73 3.52-.01V19.5z"/></svg>\') 0 24, auto';
-      }
     }
   }
 
@@ -503,260 +294,194 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Tam ekran modunu açıp kapatma
-  toggleTamEkran(): void {
-    this.tamEkranModu = !this.tamEkranModu;
-
-    const pdfContainer = document.querySelector('.pdf-container') as HTMLElement;
-
-    if (this.tamEkranModu) {
-      document.body.classList.add('tam-ekran-aktif');
-    } else {
-      document.body.classList.remove('tam-ekran-aktif');
-    }
-
-    // Canvas'ı yeniden boyutlandır
-    setTimeout(() => {
-      this.canvasBoyutlandir();
-    }, 300);
-  }
-
-  // PDF'i büyütme
-  pdfBuyut(): void {
-    this.zoom += 0.25;
-    if (this.zoom > 3) this.zoom = 3; // Maksimum 3x zoom
-
-    this.updateZoomScale();
-  }
-
-  // PDF'i küçültme
-  pdfKucult(): void {
-    this.zoom -= 0.25;
-    if (this.zoom < 0.5) this.zoom = 0.5; // Minimum 0.5x zoom
-
-    this.updateZoomScale();
-  }
-
-  // Zoom ölçeğini güncelleme
-  private updateZoomScale(): void {
-    const pdfViewerElement = document.querySelector('pdf-viewer') as HTMLElement;
-    if (pdfViewerElement) {
-      pdfViewerElement.style.transform = `scale(${this.zoom})`;
-      pdfViewerElement.style.transformOrigin = 'center top';
-    }
-  }
-
-  kaydet(): void {
-    if (!this.secilenGrup) {
-      alert('Lütfen bir öğrenci grubu seçiniz!');
-      return;
-    }
-
+  // PDF'i oluştur ve indir
+  indirPDF(): void {
     this.kaydetmeIsleminde = true;
 
-    // Canvas içeriğini PNG olarak alıyoruz
-    const dataURL = this.canvas.toDataURL({
-      format: 'png',
-      quality: 0.8,
-      multiplier: 1.0
-    });
-
-    // Burada backend'e kaydedilecek veriyi gönderebilirsiniz
-    // Örneğin:
-    /*
-    const kayitVerisi = {
-      pdfAdi: this.secilenPDF,
-      sayfa: this.currentPage,
-      cizimVerisi: dataURL,
-      ogrenciGrubu: this.secilenGrup,
-      tarih: new Date()
-    };
-
-    this.apiServis.konuKaydet(kayitVerisi).subscribe(
-      response => {
-        alert('Konu anlatımı başarıyla kaydedildi!');
-        this.kaydetmeIsleminde = false;
-      },
-      error => {
-        alert('Kaydetme sırasında bir hata oluştu!');
-        this.kaydetmeIsleminde = false;
-      }
-    );
-    */
-
-    // Şimdilik sadece simüle ediyoruz
-    setTimeout(() => {
-      alert(`"${this.secilenPDF}" dosyasının ${this.currentPage}. sayfası "${this.secilenGrup}" için kaydedildi.`);
-      this.kaydetmeIsleminde = false;
-    }, 1000);
-  }
-
-    // Sayfa terk edildiğinde uyarı mesajı göster
-  @HostListener('window:beforeunload', ['$event'])
-  beforeUnloadHandler(event: any) {
-    if (this.cizilebilir && this.canvas && this.canvas.getObjects().length > 0) {
-      event.returnValue = 'Sayfadan ayrılmak istediğinize emin misiniz? Yapılan değişiklikler kaybolabilir.';
-      return event.returnValue;
-    }
-    return true;
-  }
-
-  // PDF'i çizimlerle birlikte bilgisayara indirme fonksiyonu
-  indirPDF(): void {
-    if (!this.pdfSrc) {
-      alert('İndirmek için bir PDF yüklemelisiniz!');
-      return;
-    }
-
     try {
-      this.kaydetmeIsleminde = true;
-      
-      // Tüm sayfaları ekran görüntüsü olarak alacak dizi
-      const sayfaGoruntumleri: string[] = [];
-      
-      // Canvas görüntüsünü al
-      const canvasResmi = this.canvas.toDataURL({
-        format: 'png',
-        quality: 1.0,
-        multiplier: 2.0 // Daha yüksek kalite
-      });
-      sayfaGoruntumleri.push(canvasResmi);
-
       // PDF oluştur
       const pdf = new jsPDF({
         orientation: 'portrait',
-        unit: 'mm'
+        unit: 'mm',
+        format: 'a4'
       });
-      
-      // Orijinal PDF'i arka plan olarak yükle
-      const pdfData = this.pdfSrc.split(',')[1];
-      
-      // Notları PDF'e ekle
-      const img = new Image();
-      img.src = canvasResmi;
-      
-      img.onload = () => {
-        // Her sayfaya çizimleri ekle
-        // NOT: Bu basit bir yaklaşım, daha gelişmiş çözüm için PDF.js veya başka kütüphaneler kullanılabilir
-        
-        // Dosya adını belirle
-        let dosyaAdi = this.secilenPDF || 'notlu_pdf.pdf';
-        if (!dosyaAdi.toLowerCase().endsWith('.pdf')) {
-          dosyaAdi += '.pdf';
+
+      const processNextPage = (page: number) => {
+        if (page > this.totalPages) {
+          // Tüm sayfalar tamamlandı, PDF'i indir
+          const dosyaAdi = this.secilenGrup ? 
+            `ders_notu_${this.secilenGrup.replace(' ', '_')}.pdf` : 
+            'ders_notu.pdf';
+
+          pdf.save(dosyaAdi);
+          this.kaydetmeIsleminde = false;
+
+          // Eğer grup seçilmişse veritabanına da kaydet
+          if (this.secilenGrup) {
+            this.veritabaninaKaydet(pdf);
+          }
+
+          return;
         }
-        
-        // Server'a gönder ve notları eklenmiş PDF'i döndür
-        const formData = new FormData();
-        formData.append('pdf_dosyasi', this.base64ToBlob(pdfData, 'application/pdf'), dosyaAdi);
-        formData.append('notlar', this.base64ToBlob(canvasResmi.split(',')[1], 'image/png'), 'notlar.png');
-        formData.append('sayfa_no', this.currentPage.toString());
-        
-        // Server'a gönder
-        this.http.post('server/api/pdf_notlar_birlestir.php', formData, { responseType: 'blob' })
-          .subscribe({
-            next: (response: Blob) => {
-              // İndirme linkini oluştur
-              const url = window.URL.createObjectURL(response);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `notlu_${dosyaAdi}`;
-              document.body.appendChild(a);
-              a.click();
-              
-              // Belleği temizle
-              window.URL.revokeObjectURL(url);
-              document.body.removeChild(a);
-              
-              this.kaydetmeIsleminde = false;
-              alert('PDF ve notlar başarıyla kaydedildi ve indirildi!');
-            },
-            error: (error) => {
-              console.error('PDF birleştirme hatası:', error);
-              
-              // Hata durumunda alternatif çözüm olarak sadece canvas görüntüsünü indir
-              const canvasUrl = canvasResmi;
-              const a = document.createElement('a');
-              a.href = canvasUrl;
-              a.download = 'notlar.png';
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              
-              this.kaydetmeIsleminde = false;
-              alert('PDF işleme hatası nedeniyle sadece notlar PNG olarak indirildi!');
+
+        // Geçerli sayfayı görünür yap ve canvas'ı al
+        this.sayfayaGit(page);
+
+        setTimeout(() => {
+          const canvas = this.canvasInstances[page - 1];
+          if (canvas) {
+            // Canvas'ı PNG olarak dışa aktar
+            const dataURL = canvas.toDataURL({
+              format: 'png',
+              quality: 1,
+              multiplier: 2
+            });
+
+            // İlk sayfa değilse yeni sayfa ekle
+            if (page > 1) {
+              pdf.addPage();
             }
-          });
+
+            // PNG'yi PDF'e ekle
+            const imgWidth = 210; // A4 genişliği (mm)
+            const imgHeight = 297; // A4 yüksekliği (mm)
+            pdf.addImage(dataURL, 'PNG', 0, 0, imgWidth, imgHeight);
+
+            // Sonraki sayfaya geç
+            processNextPage(page + 1);
+          } else {
+            console.error(`Canvas ${page} bulunamadı`);
+            processNextPage(page + 1);
+          }
+        }, 200);
       };
+
+      // İlk sayfadan başla
+      processNextPage(1);
+
     } catch (error) {
-      console.error('PDF indirme hatası:', error);
-      alert('PDF indirme işlemi sırasında bir hata oluştu!');
+      console.error('PDF oluşturma hatası:', error);
+      alert('PDF oluşturulurken bir hata oluştu!');
       this.kaydetmeIsleminde = false;
     }
   }
 
   // Veritabanına kaydetme işlemi
-  veritabaninaKaydet(): void {
-    if (!this.pdfSrc || !this.secilenGrup) {
-      alert('Kaydetmek için bir PDF yüklemeniz ve öğrenci grubu seçmeniz gerekiyor!');
+  veritabaninaKaydet(pdfDoc?: jsPDF): void {
+    if (!this.secilenGrup) {
+      alert('Lütfen bir öğrenci grubu seçin!');
       return;
     }
 
     this.kaydetmeIsleminde = true;
 
     try {
-      // Canvas içeriğini PNG olarak alıyoruz
-      const cizimVerisi = this.canvas.toDataURL({
-        format: 'png',
-        quality: 0.8,
-        multiplier: 1.0
-      });
+      // Eğer PDF dokümanı parametre olarak gelmemişse, indirPDF metodunu çağırmadan PDF oluştur
+      if (!pdfDoc) {
+        // PDF oluştur
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
 
-      // Form verisi oluşturalım
-      const formData = new FormData();
-      formData.append('pdf_adi', this.secilenPDF);
-      formData.append('sayfa_no', this.currentPage.toString());
-      formData.append('ogrenci_grubu', this.secilenGrup);
-      
-      // PDF verisini ekle
-      const pdfBlob = this.base64ToBlob(this.pdfSrc.split(',')[1], 'application/pdf');
-      formData.append('pdf_dosyasi', pdfBlob, this.secilenPDF || 'ders_notu.pdf');
-      
-      // Çizim verilerini ekle
-      const cizimBlob = this.base64ToBlob(cizimVerisi.split(',')[1], 'image/png');
-      formData.append('cizim_verisi', cizimBlob, 'cizim.png');
+        // PDF'i Blob olarak al
+        const pdfBlob = pdf.output('blob');
 
-      // HTTP isteği yapılması için kod buraya eklenecek
-      // this.http.post('server/api/konu_anlatim_kaydet.php', formData).subscribe(...)
-      
-      // Simülasyon için
-      setTimeout(() => {
-        alert(`"${this.secilenPDF}" dosyası ve çizimler "${this.secilenGrup}" için veritabanına kaydedildi.`);
-        this.kaydetmeIsleminde = false;
-      }, 1500);
+        // Form verisi oluştur
+        const formData = new FormData();
+        formData.append('ogrenci_grubu', this.secilenGrup);
+        formData.append('pdf_dosyasi', pdfBlob, `ders_notu_${this.secilenGrup.replace(' ', '_')}.pdf`);
+        formData.append('sayfa_sayisi', this.totalPages.toString());
+
+        // Her sayfanın görüntüsünü ekle
+        for (let i = 0; i < this.totalPages; i++) {
+          const canvas = this.canvasInstances[i];
+          if (canvas) {
+            const dataURL = canvas.toDataURL({
+              format: 'png',
+              quality: 0.8,
+              multiplier: 1.5
+            });
+
+            // Base64 String'i Blob'a dönüştür
+            const blobData = this.dataURLtoBlob(dataURL);
+            formData.append(`sayfa_${i + 1}`, blobData, `sayfa_${i + 1}.png`);
+          }
+        }
+
+        // HTTP POST isteği ile backend'e gönder
+        // this.http.post('server/api/konu_anlatim_kaydet.php', formData).subscribe({
+        //   next: (response: any) => {
+        //     alert('Konu anlatımı başarıyla veritabanına kaydedildi!');
+        //     this.kaydetmeIsleminde = false;
+        //   },
+        //   error: (error) => {
+        //     console.error('Kaydetme hatası:', error);
+        //     alert('Kaydetme işlemi sırasında bir hata oluştu!');
+        //     this.kaydetmeIsleminde = false;
+        //   }
+        // });
+
+        // Simülasyon
+        setTimeout(() => {
+          alert(`Konu anlatımı "${this.secilenGrup}" için veritabanına kaydedildi.`);
+          this.kaydetmeIsleminde = false;
+        }, 1500);
+      } else {
+        // Zaten oluşturulmuş PDF ile kaydet
+        const pdfBlob = pdfDoc.output('blob');
+
+        // Form verisi oluştur
+        const formData = new FormData();
+        formData.append('ogrenci_grubu', this.secilenGrup);
+        formData.append('pdf_dosyasi', pdfBlob, `ders_notu_${this.secilenGrup.replace(' ', '_')}.pdf`);
+
+        // Simülasyon
+        setTimeout(() => {
+          alert(`Konu anlatımı "${this.secilenGrup}" için veritabanına kaydedildi.`);
+          this.kaydetmeIsleminde = false;
+        }, 1500);
+      }
     } catch (error) {
-      console.error('Kaydetme hatası:', error);
-      alert('Kaydetme işlemi sırasında bir hata oluştu!');
+      console.error('Veritabanına kaydetme hatası:', error);
+      alert('Veritabanına kaydetme işlemi sırasında bir hata oluştu!');
       this.kaydetmeIsleminde = false;
     }
   }
 
-  // Base64 veriyi Blob'a dönüştürme yardımcı fonksiyonu
-  private base64ToBlob(base64: string, contentType: string): Blob {
-    const byteCharacters = atob(base64);
-    const byteArrays = [];
+  // DataURL'i Blob'a dönüştürme yardımcı fonksiyonu
+  private dataURLtoBlob(dataURL: string): Blob {
+    const arr = dataURL.split(',');
+    const mime = arr[0].match(/:(.*?);/)?.[1] || '';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
 
-    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-      const slice = byteCharacters.slice(offset, offset + 512);
-      const byteNumbers = new Array(slice.length);
-      
-      for (let i = 0; i < slice.length; i++) {
-        byteNumbers[i] = slice.charCodeAt(i);
-      }
-      
-      const byteArray = new Uint8Array(byteNumbers);
-      byteArrays.push(byteArray);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
     }
 
-    return new Blob(byteArrays, { type: contentType });
+    return new Blob([u8arr], { type: mime });
+  }
+
+  // Sayfa terk edildiğinde uyarı mesajı göster
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnloadHandler(event: any) {
+    // Herhangi bir canvas'ta çizim var mı kontrol et
+    let hasDrawings = false;
+
+    for (const canvas of this.canvasInstances) {
+      if (canvas && canvas.getObjects().length > 0) {
+        hasDrawings = true;
+        break;
+      }
+    }
+
+    if (hasDrawings) {
+      event.returnValue = 'Sayfadan ayrılmak istediğinize emin misiniz? Yapılan değişiklikler kaybolabilir.';
+      return event.returnValue;
+    }
+    return true;
   }
 }
