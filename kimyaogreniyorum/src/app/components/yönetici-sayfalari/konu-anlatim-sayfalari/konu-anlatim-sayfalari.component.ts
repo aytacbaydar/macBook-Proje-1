@@ -34,6 +34,9 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   geciciSekil: fabric.Object | null = null;
   baslangicX: number = 0;
   baslangicY: number = 0;
+  
+  // Resim yükleme özellikleri
+  resimYukleniyor: boolean = false;
 
   constructor(private http: HttpClient) { }
 
@@ -49,6 +52,67 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     }, 500);
   }
 
+  // Resim yükleme metotları
+  resimYukle(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    
+    if (input.files && input.files.length > 0) {
+      this.resimYukleniyor = true;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          // Resmi canvas'a ekle
+          const canvas = this.canvasInstances[this.currentPage - 1];
+          if (canvas) {
+            // Şekil ve kalem modlarını devre dışı bırak
+            this.sekilModu = false;
+            this.secilenSekil = '';
+            canvas.isDrawingMode = false;
+            
+            // Daha sonra yeniden boyutlandırılabilmesi için
+            const imgWidth = Math.min(img.width, canvas.width * 0.8);
+            const imgHeight = img.height * (imgWidth / img.width);
+            
+            // Yeni bir fabric.Image nesnesi oluştur
+            fabric.Image.fromURL(e.target?.result as string, (fabricImg) => {
+              fabricImg.set({
+                left: (canvas.width - imgWidth) / 2,
+                top: (canvas.height - imgHeight) / 2,
+                scaleX: imgWidth / fabricImg.width!,
+                scaleY: imgHeight / fabricImg.height!,
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
+              });
+              
+              canvas.add(fabricImg);
+              canvas.setActiveObject(fabricImg);
+              canvas.renderAll();
+              
+              this.resimYukleniyor = false;
+            });
+          } else {
+            console.error('Canvas bulunamadı');
+            this.resimYukleniyor = false;
+          }
+        };
+        img.src = e.target?.result as string;
+      };
+      
+      reader.onerror = () => {
+        console.error('Resim yükleme hatası');
+        this.resimYukleniyor = false;
+      };
+      
+      reader.readAsDataURL(input.files[0]);
+      
+      // Input değerini sıfırla, böylece aynı dosya tekrar seçilebilir
+      input.value = '';
+    }
+  }
+  
   // Şekil çizim metodları
   sekilSec(sekil: string): void {
     if (this.secilenSekil === sekil) {
@@ -733,10 +797,8 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
 
         console.log('Veritabanına gönderiliyor...');
 
-        // API URL'ini düzelt - geliştirme ortamında çalışacak şekilde
-        const apiUrl = window.location.hostname.includes('replit.dev') || window.location.hostname.includes('localhost') ? 
-                      './server/api/konu_anlatim_kaydet.php' : 
-                      'https://www.kimyaogreniyorum.com/server/api/konu_anlatim_kaydet.php';
+        // API URL'ini düzelt - her zaman göreceli yol kullan
+        const apiUrl = './server/api/konu_anlatim_kaydet.php';
         
         console.log('API isteği gönderiliyor:', apiUrl);
         
@@ -744,24 +806,31 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
         const startTime = new Date().getTime();
         
         // HTTP POST isteği ile backend'e gönder (text olarak yanıt al)
-        this.http.post(apiUrl, formData, { responseType: 'text' }).subscribe({
-          next: (responseText: string) => {
+        this.http.post(apiUrl, formData, { 
+          responseType: 'text',
+          observe: 'response'
+        }).subscribe({
+          next: (response) => {
             const endTime = new Date().getTime();
-            console.log(`Sunucu yanıtı alındı (${endTime - startTime}ms)`, responseText);
+            console.log(`Sunucu yanıtı alındı (${endTime - startTime}ms) - Durum: ${response.status}`, response);
+            
+            const responseText = response.body || '';
             
             try {
               // Text yanıtını JSON'a dönüştür
-              const response = JSON.parse(responseText);
+              const responseData = JSON.parse(responseText);
               
-              if (response.success) {
+              if (responseData.success) {
                 alert(`Konu anlatımı "${this.secilenGrup}" için başarıyla veritabanına kaydedildi!`);
               } else {
-                alert(`Kaydetme hatası: ${response.message || 'Bilinmeyen hata'}`);
-                console.error('Kaydetme yanıt hatası:', response);
+                alert(`Kaydetme hatası: ${responseData.message || 'Bilinmeyen hata'}`);
+                console.error('Kaydetme yanıt hatası:', responseData);
               }
             } catch (jsonError) {
               console.error('JSON ayrıştırma hatası:', jsonError);
               console.log('Ham yanıt:', responseText);
+              console.log('Durum kodu:', response.status);
+              console.log('Başlıklar:', response.headers);
               alert('Sunucu yanıtı işlenirken bir hata oluştu. Lütfen konsolu kontrol edin.');
             }
             
@@ -774,6 +843,8 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
             
             if (error.error && typeof error.error === 'string') {
               errorMsg += error.error;
+            } else if (error.statusText) {
+              errorMsg += `${error.status} ${error.statusText}`;
             } else if (error.message) {
               errorMsg += error.message;
             } else {
@@ -781,6 +852,13 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
             }
             
             alert(errorMsg);
+            console.log('Tam hata detayları:', error);
+            
+            // Sunucu cevabını göstermeye çalış
+            if (error.error) {
+              console.log('Sunucu cevabı:', error.error);
+            }
+            
             this.kaydetmeIsleminde = false;
           }
         });

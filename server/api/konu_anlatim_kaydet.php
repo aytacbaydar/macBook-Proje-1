@@ -99,7 +99,7 @@ try {
         error_log("Veritabanı bağlantısı başarılı");
     } catch (Exception $e) {
         error_log("Veritabanı bağlantı hatası: " . $e->getMessage());
-        throw new Exception("Veritabanı bağlantısı kurulamadı: " . $e->getMessage());
+        errorResponse("Veritabanı bağlantısı kurulamadı: " . $e->getMessage(), 500);
     }
     
     // Verileri al
@@ -116,10 +116,63 @@ try {
     $pdfDosyaAdi = 'konu_' . $benzersizId . '_' . $tarih . '.pdf';
     $pdfYolu = $pdfDirectory . $pdfDosyaAdi;
     
+    // Dosya sistemi bilgilerini logla
+    $diskFree = disk_free_space("/");
+    $diskTotal = disk_total_space("/");
+    $diskUsed = $diskTotal - $diskFree;
+    $diskPercentage = round($diskUsed / $diskTotal * 100, 2);
+    
+    error_log("Disk kullanımı: $diskPercentage% - Kullanılan: " . round($diskUsed / 1024 / 1024) . "MB, Boş: " . round($diskFree / 1024 / 1024) . "MB");
+    error_log("Kaydedilecek dosya yolu: $pdfYolu");
+    
+    // Klasör izinlerini kontrol et ve ayarla
+    if (!is_writable(dirname($pdfYolu))) {
+        chmod(dirname($pdfYolu), 0777);
+        error_log("Klasör izinleri ayarlandı: " . dirname($pdfYolu));
+    }
+    
+    // Upload detaylarını logla
+    error_log("PDF yükleme bilgileri: " . print_r($_FILES['pdf_dosyasi'], true));
+    
+    // Geçici dosyanın varlığını kontrol et
+    if (!file_exists($_FILES['pdf_dosyasi']['tmp_name'])) {
+        error_log("PDF geçici dosyası bulunamadı: " . $_FILES['pdf_dosyasi']['tmp_name']);
+        errorResponse('PDF geçici dosyası bulunamadı. Yükleme başarısız.', 500);
+    }
+    
+    // Dosya boyutu kontrolü
+    if ($_FILES['pdf_dosyasi']['size'] <= 0) {
+        error_log("PDF dosya boyutu sıfır veya geçersiz: " . $_FILES['pdf_dosyasi']['size']);
+        errorResponse('PDF dosya boyutu geçersiz.', 500);
+    }
+    
+    // Dosyayı taşı
     if (!move_uploaded_file($_FILES['pdf_dosyasi']['tmp_name'], $pdfYolu)) {
         $error = error_get_last();
-        error_log("PDF dosyası kaydedilirken hata: " . ($error ? $error['message'] : 'Bilinmeyen hata'));
-        errorResponse('PDF dosyası kaydedilemedi: ' . ($error ? $error['message'] : 'Bilinmeyen hata'), 500);
+        $phpFileUploadErrors = array(
+            0 => 'Hata yok, dosya başarıyla yüklendi',
+            1 => 'Yüklenen dosya php.ini\'deki upload_max_filesize değerini aşıyor',
+            2 => 'Yüklenen dosya HTML formundaki MAX_FILE_SIZE değerini aşıyor',
+            3 => 'Yüklenen dosya kısmen yüklendi',
+            4 => 'Hiçbir dosya yüklenmedi',
+            6 => 'Geçici klasör eksik',
+            7 => 'Disk üzerine dosya yazılamadı',
+            8 => 'Bir PHP uzantısı dosya yüklemesini durdurdu',
+        );
+        
+        $errorCode = $_FILES['pdf_dosyasi']['error'];
+        $errorMessage = isset($phpFileUploadErrors[$errorCode]) ? $phpFileUploadErrors[$errorCode] : 'Bilinmeyen hata';
+        
+        error_log("PDF dosyası taşırken hata. Kod: $errorCode, Mesaj: $errorMessage");
+        error_log("Hata detayı: " . ($error ? print_r($error, true) : 'Detay yok'));
+        
+        // Manuel kopyalama dene
+        if (!copy($_FILES['pdf_dosyasi']['tmp_name'], $pdfYolu)) {
+            error_log("Manuel kopyalama da başarısız oldu");
+            errorResponse("PDF dosyası kaydedilemedi: $errorMessage", 500);
+        } else {
+            error_log("Manuel kopyalama başarılı oldu");
+        }
     }
     error_log("PDF dosyası başarıyla kaydedildi: $pdfYolu");
     
