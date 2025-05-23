@@ -1,4 +1,3 @@
-
 <?php
 // CORS ve Content-Type başlıkları (EN BAŞTA olmalı - herhangi bir çıktıdan önce)
 header("Access-Control-Allow-Origin: *");
@@ -25,11 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require '../config.php';
 
 // Yardımcı fonksiyonlar
-function errorResponse($message, $code = 400) {
-    http_response_code($code);
-    echo json_encode(['success' => false, 'message' => $message]);
-    exit();
-}
+//errorResponse fonksiyonu config.php'den geliyor
 
 function successResponse($data, $message = 'İşlem başarılı') {
     http_response_code(200);
@@ -93,7 +88,7 @@ if (!file_exists($logDir)) {
 try {
     // Veritabanı bağlantısını test et
     error_log("Veritabanı bağlantısı kuruluyor...");
-    
+
     try {
         $conn = getConnection();
         error_log("Veritabanı bağlantısı başarılı");
@@ -101,51 +96,51 @@ try {
         error_log("Veritabanı bağlantı hatası: " . $e->getMessage());
         errorResponse("Veritabanı bağlantısı kurulamadı: " . $e->getMessage(), 500);
     }
-    
+
     // Verileri al
     $pdfAdi = $_POST['pdf_adi'];
     $sayfaSayisi = isset($_POST['sayfa_sayisi']) ? (int)$_POST['sayfa_sayisi'] : 1;
     $ogrenciGrubu = $_POST['ogrenci_grubu'];
     $ogretmenId = 1; // Test için sabit bir değer kullanıyoruz
-    
+
     // Dosya adlarını oluştur
     $tarih = date('Ymd_His');
     $benzersizId = uniqid();
-    
+
     // PDF dosyasını kaydet
     $pdfDosyaAdi = 'konu_' . $benzersizId . '_' . $tarih . '.pdf';
     $pdfYolu = $pdfDirectory . $pdfDosyaAdi;
-    
+
     // Dosya sistemi bilgilerini logla
     $diskFree = disk_free_space("/");
     $diskTotal = disk_total_space("/");
     $diskUsed = $diskTotal - $diskFree;
     $diskPercentage = round($diskUsed / $diskTotal * 100, 2);
-    
+
     error_log("Disk kullanımı: $diskPercentage% - Kullanılan: " . round($diskUsed / 1024 / 1024) . "MB, Boş: " . round($diskFree / 1024 / 1024) . "MB");
     error_log("Kaydedilecek dosya yolu: $pdfYolu");
-    
+
     // Klasör izinlerini kontrol et ve ayarla
     if (!is_writable(dirname($pdfYolu))) {
         chmod(dirname($pdfYolu), 0777);
         error_log("Klasör izinleri ayarlandı: " . dirname($pdfYolu));
     }
-    
+
     // Upload detaylarını logla
     error_log("PDF yükleme bilgileri: " . print_r($_FILES['pdf_dosyasi'], true));
-    
+
     // Geçici dosyanın varlığını kontrol et
     if (!file_exists($_FILES['pdf_dosyasi']['tmp_name'])) {
         error_log("PDF geçici dosyası bulunamadı: " . $_FILES['pdf_dosyasi']['tmp_name']);
         errorResponse('PDF geçici dosyası bulunamadı. Yükleme başarısız.', 500);
     }
-    
+
     // Dosya boyutu kontrolü
     if ($_FILES['pdf_dosyasi']['size'] <= 0) {
         error_log("PDF dosya boyutu sıfır veya geçersiz: " . $_FILES['pdf_dosyasi']['size']);
         errorResponse('PDF dosya boyutu geçersiz.', 500);
     }
-    
+
     // Dosyayı taşı
     if (!move_uploaded_file($_FILES['pdf_dosyasi']['tmp_name'], $pdfYolu)) {
         $error = error_get_last();
@@ -159,13 +154,13 @@ try {
             7 => 'Disk üzerine dosya yazılamadı',
             8 => 'Bir PHP uzantısı dosya yüklemesini durdurdu',
         );
-        
+
         $errorCode = $_FILES['pdf_dosyasi']['error'];
         $errorMessage = isset($phpFileUploadErrors[$errorCode]) ? $phpFileUploadErrors[$errorCode] : 'Bilinmeyen hata';
-        
+
         error_log("PDF dosyası taşırken hata. Kod: $errorCode, Mesaj: $errorMessage");
         error_log("Hata detayı: " . ($error ? print_r($error, true) : 'Detay yok'));
-        
+
         // Manuel kopyalama dene
         if (!copy($_FILES['pdf_dosyasi']['tmp_name'], $pdfYolu)) {
             error_log("Manuel kopyalama da başarısız oldu");
@@ -175,20 +170,20 @@ try {
         }
     }
     error_log("PDF dosyası başarıyla kaydedildi: $pdfYolu");
-    
+
     // Çizim dosyasını kaydet (varsa)
     $cizimDosyaAdi = null;
     $cizimYolu = null;
-    
+
     if (isset($_FILES['cizim_verisi']) && $_FILES['cizim_verisi']['error'] == 0) {
         $cizimDosyaAdi = 'cizim_' . $benzersizId . '_' . $tarih . '.png';
         $cizimYolu = $cizimDirectory . $cizimDosyaAdi;
-        
+
         if (!move_uploaded_file($_FILES['cizim_verisi']['tmp_name'], $cizimYolu)) {
             errorResponse('Çizim dosyası kaydedilemedi', 500);
         }
     }
-    
+
     // Veritabanı kaydı için tablo kontrol et ve oluştur
     $tableSql = "
     CREATE TABLE IF NOT EXISTS `konu_anlatim_kayitlari` (
@@ -204,9 +199,9 @@ try {
       PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ";
-    
+
     $conn->exec($tableSql);
-    
+
     // Tablo var mı kontrol et
     $tableCheck = $conn->query("SHOW TABLES LIKE 'konu_anlatim_kayitlari'");
     if ($tableCheck->rowCount() == 0) {
@@ -228,14 +223,14 @@ try {
                 NOW()
             )
         ");
-        
+
         $stmt->bindParam(':pdf_adi', $pdfAdi);
         $stmt->bindParam(':pdf_dosya_yolu', $pdfDosyaAdi);
         $stmt->bindParam(':sayfa_sayisi', $sayfaSayisi);
         $stmt->bindParam(':cizim_dosya_yolu', $cizimDosyaAdi);
         $stmt->bindParam(':ogrenci_grubu', $ogrenciGrubu);
         $stmt->bindParam(':ogretmen_id', $ogretmenId);
-        
+
         if (!$stmt->execute()) {
             $error = $stmt->errorInfo();
             throw new PDOException("SQL Error: " . $error[2]);
@@ -244,16 +239,16 @@ try {
         error_log("SQL Hatası: " . $e->getMessage());
         throw $e;
     }
-    
+
     $kayitId = $conn->lastInsertId();
-    
+
     // Başarılı yanıt
     successResponse([
         'kayit_id' => $kayitId,
         'pdf_yolu' => 'dosyalar/pdf/' . $pdfDosyaAdi,
         'cizim_yolu' => $cizimDosyaAdi ? 'dosyalar/cizimler/' . $cizimDosyaAdi : null
     ], 'Konu anlatım kaydı başarıyla oluşturuldu');
-    
+
 } catch (PDOException $e) {
     errorResponse('Veritabanı hatası: ' . $e->getMessage(), 500);
 } catch (Exception $e) {
