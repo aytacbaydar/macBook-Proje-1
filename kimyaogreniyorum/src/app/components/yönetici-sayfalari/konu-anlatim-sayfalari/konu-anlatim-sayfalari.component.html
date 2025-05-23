@@ -1,24 +1,32 @@
+
 <div class="konu-anlatim-container">
   <div class="kontrol-paneli">
     <div class="arac-grubu cizim-araclari">
       <div class="renk-secici">
+        <span class="arac-grup-label">Renkler:</span>
         <button (click)="hizliRenkSec('#FF0000')" class="renk-btn kirmizi" [class.aktif]="kalemRengi === '#FF0000'" title="Kırmızı"></button>
         <button (click)="hizliRenkSec('#0000FF')" class="renk-btn mavi" [class.aktif]="kalemRengi === '#0000FF'" title="Mavi"></button>
         <button (click)="hizliRenkSec('#00AA00')" class="renk-btn yesil" [class.aktif]="kalemRengi === '#00AA00'" title="Yeşil"></button>
         <button (click)="hizliRenkSec('#000000')" class="renk-btn siyah" [class.aktif]="kalemRengi === '#000000'" title="Siyah"></button>
+        <input type="color" [(ngModel)]="kalemRengi" (change)="ayarlaKalemOzellikleri()" class="renk-input" title="Özel Renk Seç">
       </div>
 
-      <button (click)="kalemModunuAc()" class="btn-modern" [class.aktif]="!silgiModu && cizilebilir">
-        <i class="ikon">✏️</i> Kalem
-      </button>
+      <div class="arac-grubu">
+        <span class="arac-grup-label">Araçlar:</span>
+        <button (click)="kalemModunuAc()" class="btn-modern" [class.aktif]="!silgiModu && cizilebilir && !sekilModu">
+          <i class="ikon">✏️</i> Kalem
+        </button>
+        <button (click)="silgiModunuAc()" class="btn-modern" [class.aktif]="silgiModu">
+          <i class="ikon">🧹</i> Silgi
+        </button>
+        <button (click)="toggleCizim()" class="btn-modern" [class.aktif]="!cizilebilir">
+          <i class="ikon">👆</i> El
+        </button>
+      </div>
 
-      <button (click)="toggleCizim()" class="btn-modern" [class.aktif]="!cizilebilir">
-        <i class="ikon">👆</i> İmleç {{cizilebilir ? 'Modu' : 'Modu'}}
-      </button>
-
-      <div class="kalem-boyutu">
-        <label for="kalemBoyutu">Kalınlık:</label>
-        <select id="kalemBoyutu" [(ngModel)]="kalemKalinligi" (change)="ayarlaKalemOzellikleri()" class="boyut-secici">
+      <div class="arac-grubu">
+        <span class="arac-grup-label">Kalınlık:</span>
+        <select [(ngModel)]="kalemKalinligi" (change)="ayarlaKalemOzellikleri()" class="boyut-secici">
           <option [value]="2">İnce (2px)</option>
           <option [value]="4">Normal (4px)</option>
           <option [value]="8">Kalın (8px)</option>
@@ -27,16 +35,30 @@
         </select>
       </div>
 
-      <button (click)="silgiModunuAc()" class="btn-modern" [class.aktif]="silgiModu">
-        <i class="ikon">🧹</i> Silgi
-      </button>
-
-      <button (click)="temizleSayfa()" class="btn-modern temizle">
-        <i class="ikon">🗑️</i> Sayfayı Temizle
-      </button>
+      <div class="arac-grubu sekil-grubu">
+        <span class="arac-grup-label">Şekiller:</span>
+        <button (click)="sekilSec('cizgi')" class="sekil-btn" [class.aktif]="secilenSekil === 'cizgi'" title="Çizgi">
+          ╱
+        </button>
+        <button (click)="sekilSec('dikdortgen')" class="sekil-btn" [class.aktif]="secilenSekil === 'dikdortgen'" title="Dikdörtgen">
+          □
+        </button>
+        <button (click)="sekilSec('daire')" class="sekil-btn" [class.aktif]="secilenSekil === 'daire'" title="Daire">
+          ○
+        </button>
+        <button (click)="sekilSec('ok')" class="sekil-btn" [class.aktif]="secilenSekil === 'ok'" title="Ok">
+          →
+        </button>
+        <button (click)="sekilSec('ucgen')" class="sekil-btn" [class.aktif]="secilenSekil === 'ucgen'" title="Üçgen">
+          △
+        </button>
+      </div>
     </div>
 
-    <div class="arac-grubu sayfa-kontrolleri">
+    <div class="arac-grubu">
+      <button (click)="temizleSayfa()" class="btn-modern temizle">
+        <i class="ikon">🗑️</i> Temizle
+      </button>
       <button (click)="sayfaEkle()" class="btn-modern">
         <i class="ikon">➕</i> Yeni Sayfa
       </button>
@@ -48,7 +70,7 @@
         <option *ngFor="let grup of ogrenciGruplari" [value]="grup">{{ grup }}</option>
       </select>
       <button (click)="veritabaninaKaydet()" [disabled]="!secilenGrup || kaydetmeIsleminde" class="btn-modern kaydet">
-        <i class="ikon">💾</i> {{ kaydetmeIsleminde ? 'Kaydediliyor...' : 'Veritabanına Kaydet' }}
+        <i class="ikon">💾</i> {{ kaydetmeIsleminde ? 'Kaydediliyor...' : 'Kaydet' }}
       </button>
       <button (click)="indirPDF()" [disabled]="kaydetmeIsleminde" class="btn-modern indir">
         <i class="ikon">📥</i> {{ kaydetmeIsleminde ? 'İşleniyor...' : 'PDF İndir' }}
