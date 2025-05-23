@@ -658,58 +658,103 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     this.kaydetmeIsleminde = true;
 
     try {
-      // PDF dokümanı oluştur
+      // Önce PDF oluştur
       const pdf = pdfDoc || new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
 
-      // PDF'i Blob olarak al
-      const pdfBlob = pdf.output('blob');
-      const pdfAdi = `Ders Notu - ${this.secilenGrup}`;
-      const dosyaAdi = `ders_notu_${this.secilenGrup.replace(/\s+/g, '_')}.pdf`;
+      // Tüm sayfaları PDF'e ekle
+      const addPagesToDocument = () => {
+        return new Promise<void>((resolve) => {
+          const processPage = (pageIndex: number) => {
+            if (pageIndex >= this.totalPages) {
+              resolve();
+              return;
+            }
 
-      // Form verisi oluştur
-      const formData = new FormData();
-      formData.append('pdf_adi', pdfAdi);
-      formData.append('ogrenci_grubu', this.secilenGrup);
-      formData.append('pdf_dosyasi', pdfBlob, dosyaAdi);
-      formData.append('sayfa_sayisi', this.totalPages.toString());
+            // Geçerli sayfayı işle
+            const canvas = this.canvasInstances[pageIndex];
+            if (canvas) {
+              const dataURL = canvas.toDataURL({
+                format: 'png',
+                quality: 1.0,
+                multiplier: 2
+              });
 
-      // Her sayfanın görüntüsünü ekle
-      for (let i = 0; i < this.totalPages; i++) {
-        const canvas = this.canvasInstances[i];
-        if (canvas) {
-          const dataURL = canvas.toDataURL({
+              // İlk sayfa değilse yeni sayfa ekle
+              if (pageIndex > 0) {
+                pdf.addPage();
+              }
+
+              // PNG'yi PDF'e ekle
+              const imgWidth = 210; // A4 genişliği (mm)
+              const imgHeight = 297; // A4 yüksekliği (mm)
+              pdf.addImage(dataURL, 'PNG', 0, 0, imgWidth, imgHeight);
+
+              // Sonraki sayfaya geç
+              setTimeout(() => processPage(pageIndex + 1), 100);
+            } else {
+              // Canvas yoksa sonraki sayfaya geç
+              setTimeout(() => processPage(pageIndex + 1), 100);
+            }
+          };
+
+          // İlk sayfadan başla
+          processPage(0);
+        });
+      };
+
+      // PDF'i hazırla ve sonra server'a gönder
+      addPagesToDocument().then(() => {
+        // PDF'i Blob olarak al
+        const pdfBlob = pdf.output('blob');
+        const pdfAdi = `Ders Notu - ${this.secilenGrup}`;
+        const dosyaAdi = `ders_notu_${this.secilenGrup.replace(/\s+/g, '_')}.pdf`;
+
+        // Form verisi oluştur
+        const formData = new FormData();
+        formData.append('pdf_adi', pdfAdi);
+        formData.append('ogrenci_grubu', this.secilenGrup);
+        formData.append('pdf_dosyasi', pdfBlob, dosyaAdi);
+        formData.append('sayfa_sayisi', this.totalPages.toString());
+
+        // Birinci sayfanın görüntüsünü kapak olarak ekle
+        if (this.canvasInstances[0]) {
+          const coverDataURL = this.canvasInstances[0].toDataURL({
             format: 'png',
             quality: 0.8,
             multiplier: 1.5
           });
-
-          // Base64 String'i Blob'a dönüştür
-          const blobData = this.dataURLtoBlob(dataURL);
-          formData.append(`cizim_verisi`, blobData, `cizim_sayfa_${i + 1}.png`);
-          formData.append(`sayfa_no`, (i + 1).toString());
+          const coverBlob = this.dataURLtoBlob(coverDataURL);
+          formData.append('cizim_verisi', coverBlob, 'kapak.png');
         }
-      }
 
-      // HTTP POST isteği ile backend'e gönder
-      this.http.post('server/api/konu_anlatim_kaydet.php', formData).subscribe({
-        next: (response: any) => {
-          if (response.success) {
-            alert(`Konu anlatımı "${this.secilenGrup}" için başarıyla veritabanına kaydedildi!`);
-          } else {
-            alert(`Kaydetme hatası: ${response.message || 'Bilinmeyen hata'}`);
-            console.error('Kaydetme yanıt hatası:', response);
+        console.log('Veritabanına gönderiliyor...');
+
+        // HTTP POST isteği ile backend'e gönder
+        this.http.post('server/api/konu_anlatim_kaydet.php', formData).subscribe({
+          next: (response: any) => {
+            console.log('Sunucu yanıtı:', response);
+            if (response.success) {
+              alert(`Konu anlatımı "${this.secilenGrup}" için başarıyla veritabanına kaydedildi!`);
+            } else {
+              alert(`Kaydetme hatası: ${response.message || 'Bilinmeyen hata'}`);
+              console.error('Kaydetme yanıt hatası:', response);
+            }
+            this.kaydetmeIsleminde = false;
+          },
+          error: (error) => {
+            console.error('Kaydetme hatası:', error);
+            alert('Kaydetme işlemi sırasında bir hata oluştu: ' + (error.message || error));
+            this.kaydetmeIsleminde = false;
           }
-          this.kaydetmeIsleminde = false;
-        },
-        error: (error) => {
-          console.error('Kaydetme hatası:', error);
-          alert('Kaydetme işlemi sırasında bir hata oluştu!');
-          this.kaydetmeIsleminde = false;
-        }
+        });
+      }).catch(error => {
+        console.error('PDF oluşturma hatası:', error);
+        alert('PDF oluşturmada bir hata oluştu: ' + (error.message || error));
+        this.kaydetmeIsleminde = false;
       });
     } catch (error) {
       console.error('Veritabanına kaydetme hatası:', error);

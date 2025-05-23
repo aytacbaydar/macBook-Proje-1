@@ -117,29 +117,42 @@ try {
     
     $conn->exec($tableSql);
     
+    // Tablo var mı kontrol et
+    $tableCheck = $conn->query("SHOW TABLES LIKE 'konu_anlatim_kayitlari'");
+    if ($tableCheck->rowCount() == 0) {
+        // Tablo yoksa oluştur
+        $conn->exec($tableSql);
+        error_log("Tablo oluşturuldu: konu_anlatim_kayitlari");
+    }
+
     // Veritabanı kaydı
-    $stmt = $conn->prepare("
-        INSERT INTO konu_anlatim_kayitlari (
-            pdf_adi, pdf_dosya_yolu, sayfa_sayisi, 
-            cizim_dosya_yolu, ogrenci_grubu, ogretmen_id, 
-            olusturma_zamani
-        ) VALUES (
-            :pdf_adi, :pdf_dosya_yolu, :sayfa_sayisi, 
-            :cizim_dosya_yolu, :ogrenci_grubu, :ogretmen_id, 
-            NOW()
-        )
-    ");
-    
-    $stmt->bindParam(':pdf_adi', $pdfAdi);
-    $stmt->bindParam(':pdf_dosya_yolu', $pdfDosyaAdi);
-    $stmt->bindParam(':sayfa_sayisi', $sayfaSayisi);
-    $stmt->bindParam(':cizim_dosya_yolu', $cizimDosyaAdi);
-    $stmt->bindParam(':ogrenci_grubu', $ogrenciGrubu);
-    $stmt->bindParam(':ogretmen_id', $ogretmenId);
-    
-    if (!$stmt->execute()) {
-        $error = $stmt->errorInfo();
-        throw new PDOException("SQL Error: " . $error[2]);
+    try {
+        $stmt = $conn->prepare("
+            INSERT INTO konu_anlatim_kayitlari (
+                pdf_adi, pdf_dosya_yolu, sayfa_sayisi, 
+                cizim_dosya_yolu, ogrenci_grubu, ogretmen_id, 
+                olusturma_zamani
+            ) VALUES (
+                :pdf_adi, :pdf_dosya_yolu, :sayfa_sayisi, 
+                :cizim_dosya_yolu, :ogrenci_grubu, :ogretmen_id, 
+                NOW()
+            )
+        ");
+        
+        $stmt->bindParam(':pdf_adi', $pdfAdi);
+        $stmt->bindParam(':pdf_dosya_yolu', $pdfDosyaAdi);
+        $stmt->bindParam(':sayfa_sayisi', $sayfaSayisi);
+        $stmt->bindParam(':cizim_dosya_yolu', $cizimDosyaAdi);
+        $stmt->bindParam(':ogrenci_grubu', $ogrenciGrubu);
+        $stmt->bindParam(':ogretmen_id', $ogretmenId);
+        
+        if (!$stmt->execute()) {
+            $error = $stmt->errorInfo();
+            throw new PDOException("SQL Error: " . $error[2]);
+        }
+    } catch (PDOException $e) {
+        error_log("SQL Hatası: " . $e->getMessage());
+        throw $e;
     }
     
     $kayitId = $conn->lastInsertId();
