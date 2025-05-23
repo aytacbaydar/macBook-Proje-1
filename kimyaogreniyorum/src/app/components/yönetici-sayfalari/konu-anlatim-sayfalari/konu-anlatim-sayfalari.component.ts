@@ -27,6 +27,16 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   silgiModu: boolean = false;
   oncekiKalemRengi: string = '#000000';
   oncekiKalemKalinligi: number = 2;
+  
+  // Şekil çizim değişkenleri
+  sekilModu: boolean = false;
+  secilenSekil: string = ''; // cizgi, dikdortgen, daire, ok, ucgen
+  geciciSekil: fabric.Object | null = null;
+  baslangicX: number = 0;
+  baslangicY: number = 0;
+  
+  // Resim yükleme özellikleri
+  resimYukleniyor: boolean = false;
 
   constructor(private http: HttpClient) { }
 
@@ -40,6 +50,302 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     setTimeout(() => {
       this.canvasOlustur(1);
     }, 500);
+  }
+
+  // Resim yükleme metotları
+  resimYukle(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    
+    if (input.files && input.files.length > 0) {
+      this.resimYukleniyor = true;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          // Resmi canvas'a ekle
+          const canvas = this.canvasInstances[this.currentPage - 1];
+          if (canvas) {
+            // Şekil ve kalem modlarını devre dışı bırak
+            this.sekilModu = false;
+            this.secilenSekil = '';
+            canvas.isDrawingMode = false;
+            
+            // Daha sonra yeniden boyutlandırılabilmesi için
+            const imgWidth = Math.min(img.width, canvas.width * 0.8);
+            const imgHeight = img.height * (imgWidth / img.width);
+            
+            // Yeni bir fabric.Image nesnesi oluştur
+            fabric.Image.fromURL(e.target?.result as string, (fabricImg) => {
+              fabricImg.set({
+                left: (canvas.width - imgWidth) / 2,
+                top: (canvas.height - imgHeight) / 2,
+                scaleX: imgWidth / fabricImg.width!,
+                scaleY: imgHeight / fabricImg.height!,
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
+              });
+              
+              canvas.add(fabricImg);
+              canvas.setActiveObject(fabricImg);
+              canvas.renderAll();
+              
+              this.resimYukleniyor = false;
+            });
+          } else {
+            console.error('Canvas bulunamadı');
+            this.resimYukleniyor = false;
+          }
+        };
+        img.src = e.target?.result as string;
+      };
+      
+      reader.onerror = () => {
+        console.error('Resim yükleme hatası');
+        this.resimYukleniyor = false;
+      };
+      
+      reader.readAsDataURL(input.files[0]);
+      
+      // Input değerini sıfırla, böylece aynı dosya tekrar seçilebilir
+      input.value = '';
+    }
+  }
+  
+  // Şekil çizim metodları
+  sekilSec(sekil: string): void {
+    if (this.secilenSekil === sekil) {
+      // Şekil modunu kapat
+      this.secilenSekil = '';
+      this.sekilModu = false;
+      this.kalemModunuAc(); // Kalem moduna dön
+    } else {
+      // Yeni şekil modunu aç
+      this.secilenSekil = sekil;
+      this.sekilModu = true;
+      this.silgiModu = false;
+      this.cizilebilir = false;
+
+      // Kalem ve silgi modlarını kapat, şekil çizim modunu etkinleştir
+      document.body.classList.remove('kalem-aktif', 'silgi-aktif', 'el-imleci-aktif');
+      document.body.classList.add('sekil-ciz-aktif');
+
+      // Canvas olaylarını ayarla
+      this.ayarlaSekilOlaylari();
+    }
+  }
+
+  ayarlaSekilOlaylari(): void {
+    const canvas = this.canvasInstances[this.currentPage - 1];
+    if (!canvas) return;
+
+    // Mevcut olayları temizle
+    canvas.off('mouse:down');
+    canvas.off('mouse:move');
+    canvas.off('mouse:up');
+
+    // Çizim modunu kapat
+    canvas.isDrawingMode = false;
+
+    // Yeni olayları ekle
+    canvas.on('mouse:down', (o: fabric.TEvent) => {
+      const pointer = canvas.getPointer(o.e);
+      this.baslangicX = pointer.x;
+      this.baslangicY = pointer.y;
+      
+      // Geçici şekli oluştur
+      this.geciciSekil = this.sekilOlustur(this.secilenSekil, pointer.x, pointer.y, pointer.x, pointer.y);
+      if (this.geciciSekil) {
+        canvas.add(this.geciciSekil);
+      }
+    });
+
+    canvas.on('mouse:move', (o: fabric.TEvent) => {
+      if (!this.geciciSekil) return;
+      
+      const pointer = canvas.getPointer(o.e);
+      this.sekilGuncelle(this.geciciSekil, this.secilenSekil, this.baslangicX, this.baslangicY, pointer.x, pointer.y);
+      canvas.renderAll();
+    });
+
+    canvas.on('mouse:up', () => {
+      this.geciciSekil = null;
+    });
+  }
+
+  sekilOlustur(sekil: string, x1: number, y1: number, x2: number, y2: number): fabric.Object | null {
+    const canvas = this.canvasInstances[this.currentPage - 1];
+    if (!canvas) return null;
+
+    let sekilObj: fabric.Object | null = null;
+
+    switch (sekil) {
+      case 'cizgi':
+        sekilObj = new fabric.Line([x1, y1, x2, y2], {
+          stroke: this.kalemRengi,
+          strokeWidth: this.kalemKalinligi,
+          selectable: true
+        });
+        break;
+
+      case 'dikdortgen':
+        sekilObj = new fabric.Rect({
+          left: Math.min(x1, x2),
+          top: Math.min(y1, y2),
+          width: Math.abs(x2 - x1),
+          height: Math.abs(y2 - y1),
+          stroke: this.kalemRengi,
+          strokeWidth: this.kalemKalinligi,
+          fill: 'transparent',
+          selectable: true
+        });
+        break;
+
+      case 'daire':
+        const radius = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)) / 2;
+        const centerX = (x1 + x2) / 2;
+        const centerY = (y1 + y2) / 2;
+        sekilObj = new fabric.Circle({
+          left: centerX - radius,
+          top: centerY - radius,
+          radius: radius,
+          stroke: this.kalemRengi,
+          strokeWidth: this.kalemKalinligi,
+          fill: 'transparent',
+          selectable: true
+        });
+        break;
+
+      case 'ok':
+        // Ok için çizgi
+        const lineObj = new fabric.Line([x1, y1, x2, y2], {
+          stroke: this.kalemRengi,
+          strokeWidth: this.kalemKalinligi,
+          selectable: true
+        });
+
+        // Ok başı için hesaplama
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        const headLength = 15;
+        const arrowAngle = Math.PI / 6; // 30 derece
+        
+        const x3 = x2 - headLength * Math.cos(angle - arrowAngle);
+        const y3 = y2 - headLength * Math.sin(angle - arrowAngle);
+        const x4 = x2 - headLength * Math.cos(angle + arrowAngle);
+        const y4 = y2 - headLength * Math.sin(angle + arrowAngle);
+        
+        const trianglePoints = [
+          { x: x2, y: y2 },
+          { x: x3, y: y3 },
+          { x: x4, y: y4 }
+        ];
+        
+        const headObj = new fabric.Polygon(trianglePoints, {
+          fill: this.kalemRengi,
+          stroke: this.kalemRengi,
+          strokeWidth: 1,
+          selectable: true
+        });
+        
+        // Ok nesnesini gruplandır
+        sekilObj = new fabric.Group([lineObj, headObj], {
+          selectable: true
+        });
+        break;
+
+      case 'ucgen':
+        sekilObj = new fabric.Triangle({
+          left: Math.min(x1, x2),
+          top: Math.min(y1, y2),
+          width: Math.abs(x2 - x1),
+          height: Math.abs(y2 - y1),
+          stroke: this.kalemRengi,
+          strokeWidth: this.kalemKalinligi,
+          fill: 'transparent',
+          selectable: true
+        });
+        break;
+    }
+
+    return sekilObj;
+  }
+
+  sekilGuncelle(sekilObj: fabric.Object, sekil: string, x1: number, y1: number, x2: number, y2: number): void {
+    if (!sekilObj) return;
+
+    switch (sekil) {
+      case 'cizgi':
+        if (sekilObj instanceof fabric.Line) {
+          sekilObj.set({ x2: x2, y2: y2 });
+        }
+        break;
+
+      case 'dikdortgen':
+        if (sekilObj instanceof fabric.Rect) {
+          sekilObj.set({
+            left: Math.min(x1, x2),
+            top: Math.min(y1, y2),
+            width: Math.abs(x2 - x1),
+            height: Math.abs(y2 - y1)
+          });
+        }
+        break;
+
+      case 'daire':
+        if (sekilObj instanceof fabric.Circle) {
+          const radius = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)) / 2;
+          const centerX = (x1 + x2) / 2;
+          const centerY = (y1 + y2) / 2;
+          sekilObj.set({
+            left: centerX - radius,
+            top: centerY - radius,
+            radius: radius
+          });
+        }
+        break;
+
+      case 'ok':
+        if (sekilObj instanceof fabric.Group) {
+          const lineObj = sekilObj.getObjects()[0] as fabric.Line;
+          if (lineObj) {
+            lineObj.set({ x2: x2, y2: y2 });
+          }
+
+          // Ok başını güncelle
+          const angle = Math.atan2(y2 - y1, x2 - x1);
+          const headLength = 15;
+          const arrowAngle = Math.PI / 6; // 30 derece
+          
+          const x3 = x2 - headLength * Math.cos(angle - arrowAngle);
+          const y3 = y2 - headLength * Math.sin(angle - arrowAngle);
+          const x4 = x2 - headLength * Math.cos(angle + arrowAngle);
+          const y4 = y2 - headLength * Math.sin(angle + arrowAngle);
+
+          const headObj = sekilObj.getObjects()[1] as fabric.Polygon;
+          if (headObj) {
+            headObj.set('points', [
+              { x: x2, y: y2 },
+              { x: x3, y: y3 },
+              { x: x4, y: y4 }
+            ]);
+          }
+
+          sekilObj.setCoords();
+        }
+        break;
+
+      case 'ucgen':
+        if (sekilObj instanceof fabric.Triangle) {
+          sekilObj.set({
+            left: Math.min(x1, x2),
+            top: Math.min(y1, y2),
+            width: Math.abs(x2 - x1),
+            height: Math.abs(y2 - y1)
+          });
+        }
+        break;
+    }
   }
 
   @HostListener('window:resize', ['$event'])
@@ -203,27 +509,36 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   }
 
   toggleCizim(): void {
+    // Şekil modundan çık
+    this.sekilModu = false;
+    this.secilenSekil = '';
+    
     this.cizilebilir = !this.cizilebilir;
 
     const canvas = this.canvasInstances[this.currentPage - 1];
     if (canvas) {
       canvas.isDrawingMode = this.cizilebilir;
+      
+      // El imleç modunda olayları temizle
+      if (!this.cizilebilir) {
+        canvas.off('mouse:down');
+        canvas.off('mouse:move');
+        canvas.off('mouse:up');
+      }
     }
 
     // İmleç stilini güncelle
     if (this.cizilebilir) {
       if (this.silgiModu) {
         document.body.classList.add('silgi-aktif');
-        document.body.classList.remove('kalem-aktif');
-        document.body.classList.remove('el-imleci-aktif');
+        document.body.classList.remove('kalem-aktif', 'el-imleci-aktif', 'sekil-ciz-aktif');
       } else {
         document.body.classList.add('kalem-aktif');
-        document.body.classList.remove('silgi-aktif');
-        document.body.classList.remove('el-imleci-aktif');
+        document.body.classList.remove('silgi-aktif', 'el-imleci-aktif', 'sekil-ciz-aktif');
       }
     } else {
-      // Kalem ve silgi modlarını kapat, el imleci kullan
-      document.body.classList.remove('kalem-aktif', 'silgi-aktif');
+      // Kalem, silgi ve şekil modlarını kapat, el imleci kullan
+      document.body.classList.remove('kalem-aktif', 'silgi-aktif', 'sekil-ciz-aktif');
       document.body.classList.add('el-imleci-aktif');
     }
 
@@ -262,6 +577,11 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   }
 
   silgiModunuAc(): void {
+    // Şekil modundan çık
+    this.sekilModu = false;
+    this.secilenSekil = '';
+    this.cizilebilir = true;
+    
     if (!this.silgiModu) {
       this.silgiModu = true;
       // Önceki kalem ayarlarını kaydet
@@ -275,22 +595,48 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
 
       // İmleç stilini güncelle
       document.body.classList.add('silgi-aktif');
-      document.body.classList.remove('kalem-aktif');
-      document.body.classList.remove('el-imleci-aktif');
+      document.body.classList.remove('kalem-aktif', 'el-imleci-aktif', 'sekil-ciz-aktif');
+      
+      // Canvas'ı silgi moduna getir
+      const canvas = this.canvasInstances[this.currentPage - 1];
+      if (canvas) {
+        // Gerekli olayları temizle
+        canvas.off('mouse:down');
+        canvas.off('mouse:move');
+        canvas.off('mouse:up');
+        
+        // Çizim modunu aktifleştir
+        canvas.isDrawingMode = true;
+      }
     }
   }
 
   kalemModunuAc(): void {
-    if (this.silgiModu) {
-      this.silgiModu = false;
-      // Önceki kalem ayarlarını geri yükle
-      this.kalemRengi = this.oncekiKalemRengi;
-      this.kalemKalinligi = this.oncekiKalemKalinligi;
-      this.ayarlaKalemOzellikleri();
+    // Silgi, şekil veya başka bir moddan kalem moduna geçiş
+    this.silgiModu = false;
+    this.sekilModu = false;
+    this.secilenSekil = '';
+    this.cizilebilir = true;
+    
+    // Önceki kalem ayarlarını geri yükle
+    this.kalemRengi = this.oncekiKalemRengi;
+    this.kalemKalinligi = this.oncekiKalemKalinligi;
+    this.ayarlaKalemOzellikleri();
 
-      // İmleç stilini güncelle
-      document.body.classList.add('kalem-aktif');
-      document.body.classList.remove('silgi-aktif');
+    // İmleç stilini güncelle
+    document.body.classList.add('kalem-aktif');
+    document.body.classList.remove('silgi-aktif', 'el-imleci-aktif', 'sekil-ciz-aktif');
+    
+    // Canvas'ı kalem moduna getir
+    const canvas = this.canvasInstances[this.currentPage - 1];
+    if (canvas) {
+      // Gerekli olayları temizle
+      canvas.off('mouse:down');
+      canvas.off('mouse:move');
+      canvas.off('mouse:up');
+      
+      // Çizim modunu aktifleştir
+      canvas.isDrawingMode = true;
     }
   }
 
@@ -376,73 +722,151 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     this.kaydetmeIsleminde = true;
 
     try {
-      // Eğer PDF dokümanı parametre olarak gelmemişse, indirPDF metodunu çağırmadan PDF oluştur
-      if (!pdfDoc) {
-        // PDF oluştur
-        const pdf = new jsPDF({
-          orientation: 'portrait',
-          unit: 'mm',
-          format: 'a4'
-        });
+      // Önce PDF oluştur
+      const pdf = pdfDoc || new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
 
+      // Tüm sayfaları PDF'e ekle
+      const addPagesToDocument = () => {
+        return new Promise<void>((resolve) => {
+          const processPage = (pageIndex: number) => {
+            if (pageIndex >= this.totalPages) {
+              resolve();
+              return;
+            }
+
+            // Geçerli sayfayı işle
+            const canvas = this.canvasInstances[pageIndex];
+            if (canvas) {
+              const dataURL = canvas.toDataURL({
+                format: 'png',
+                quality: 1.0,
+                multiplier: 2
+              });
+
+              // İlk sayfa değilse yeni sayfa ekle
+              if (pageIndex > 0) {
+                pdf.addPage();
+              }
+
+              // PNG'yi PDF'e ekle
+              const imgWidth = 210; // A4 genişliği (mm)
+              const imgHeight = 297; // A4 yüksekliği (mm)
+              pdf.addImage(dataURL, 'PNG', 0, 0, imgWidth, imgHeight);
+
+              // Sonraki sayfaya geç
+              setTimeout(() => processPage(pageIndex + 1), 100);
+            } else {
+              // Canvas yoksa sonraki sayfaya geç
+              setTimeout(() => processPage(pageIndex + 1), 100);
+            }
+          };
+
+          // İlk sayfadan başla
+          processPage(0);
+        });
+      };
+
+      // PDF'i hazırla ve sonra server'a gönder
+      addPagesToDocument().then(() => {
         // PDF'i Blob olarak al
         const pdfBlob = pdf.output('blob');
+        const pdfAdi = `Ders Notu - ${this.secilenGrup}`;
+        const dosyaAdi = `ders_notu_${this.secilenGrup.replace(/\s+/g, '_')}.pdf`;
 
         // Form verisi oluştur
         const formData = new FormData();
+        formData.append('pdf_adi', pdfAdi);
         formData.append('ogrenci_grubu', this.secilenGrup);
-        formData.append('pdf_dosyasi', pdfBlob, `ders_notu_${this.secilenGrup.replace(' ', '_')}.pdf`);
+        formData.append('pdf_dosyasi', pdfBlob, dosyaAdi);
         formData.append('sayfa_sayisi', this.totalPages.toString());
 
-        // Her sayfanın görüntüsünü ekle
-        for (let i = 0; i < this.totalPages; i++) {
-          const canvas = this.canvasInstances[i];
-          if (canvas) {
-            const dataURL = canvas.toDataURL({
-              format: 'png',
-              quality: 0.8,
-              multiplier: 1.5
-            });
-
-            // Base64 String'i Blob'a dönüştür
-            const blobData = this.dataURLtoBlob(dataURL);
-            formData.append(`sayfa_${i + 1}`, blobData, `sayfa_${i + 1}.png`);
-          }
+        // Birinci sayfanın görüntüsünü kapak olarak ekle
+        if (this.canvasInstances[0]) {
+          const coverDataURL = this.canvasInstances[0].toDataURL({
+            format: 'png',
+            quality: 0.8,
+            multiplier: 1.5
+          });
+          const coverBlob = this.dataURLtoBlob(coverDataURL);
+          formData.append('cizim_verisi', coverBlob, 'kapak.png');
         }
 
-        // HTTP POST isteği ile backend'e gönder
-        // this.http.post('server/api/konu_anlatim_kaydet.php', formData).subscribe({
-        //   next: (response: any) => {
-        //     alert('Konu anlatımı başarıyla veritabanına kaydedildi!');
-        //     this.kaydetmeIsleminde = false;
-        //   },
-        //   error: (error) => {
-        //     console.error('Kaydetme hatası:', error);
-        //     alert('Kaydetme işlemi sırasında bir hata oluştu!');
-        //     this.kaydetmeIsleminde = false;
-        //   }
-        // });
+        console.log('Veritabanına gönderiliyor...');
 
-        // Simülasyon
-        setTimeout(() => {
-          alert(`Konu anlatımı "${this.secilenGrup}" için veritabanına kaydedildi.`);
-          this.kaydetmeIsleminde = false;
-        }, 1500);
-      } else {
-        // Zaten oluşturulmuş PDF ile kaydet
-        const pdfBlob = pdfDoc.output('blob');
-
-        // Form verisi oluştur
-        const formData = new FormData();
-        formData.append('ogrenci_grubu', this.secilenGrup);
-        formData.append('pdf_dosyasi', pdfBlob, `ders_notu_${this.secilenGrup.replace(' ', '_')}.pdf`);
-
-        // Simülasyon
-        setTimeout(() => {
-          alert(`Konu anlatımı "${this.secilenGrup}" için veritabanına kaydedildi.`);
-          this.kaydetmeIsleminde = false;
-        }, 1500);
-      }
+        // API URL'ini düzelt - her zaman göreceli yol kullan
+        const apiUrl = './server/api/konu_anlatim_kaydet.php';
+        
+        console.log('API isteği gönderiliyor:', apiUrl);
+        
+        // İstek zamanlamasını takip et
+        const startTime = new Date().getTime();
+        
+        // HTTP POST isteği ile backend'e gönder (text olarak yanıt al)
+        this.http.post(apiUrl, formData, { 
+          responseType: 'text',
+          observe: 'response'
+        }).subscribe({
+          next: (response) => {
+            const endTime = new Date().getTime();
+            console.log(`Sunucu yanıtı alındı (${endTime - startTime}ms) - Durum: ${response.status}`, response);
+            
+            const responseText = response.body || '';
+            
+            try {
+              // Text yanıtını JSON'a dönüştür
+              const responseData = JSON.parse(responseText);
+              
+              if (responseData.success) {
+                alert(`Konu anlatımı "${this.secilenGrup}" için başarıyla veritabanına kaydedildi!`);
+              } else {
+                alert(`Kaydetme hatası: ${responseData.message || 'Bilinmeyen hata'}`);
+                console.error('Kaydetme yanıt hatası:', responseData);
+              }
+            } catch (jsonError) {
+              console.error('JSON ayrıştırma hatası:', jsonError);
+              console.log('Ham yanıt:', responseText);
+              console.log('Durum kodu:', response.status);
+              console.log('Başlıklar:', response.headers);
+              alert('Sunucu yanıtı işlenirken bir hata oluştu. Lütfen konsolu kontrol edin.');
+            }
+            
+            this.kaydetmeIsleminde = false;
+          },
+          error: (error) => {
+            console.error('Kaydetme hatası:', error);
+            // Daha detaylı hata mesajı
+            let errorMsg = 'Kaydetme işlemi sırasında bir hata oluştu: ';
+            
+            if (error.error && typeof error.error === 'string') {
+              errorMsg += error.error;
+            } else if (error.statusText) {
+              errorMsg += `${error.status} ${error.statusText}`;
+            } else if (error.message) {
+              errorMsg += error.message;
+            } else {
+              errorMsg += JSON.stringify(error);
+            }
+            
+            alert(errorMsg);
+            console.log('Tam hata detayları:', error);
+            
+            // Sunucu cevabını göstermeye çalış
+            if (error.error) {
+              console.log('Sunucu cevabı:', error.error);
+            }
+            
+            this.kaydetmeIsleminde = false;
+          }
+        });
+      }).catch(error => {
+        console.error('PDF oluşturma hatası:', error);
+        alert('PDF oluşturmada bir hata oluştu: ' + (error.message || error));
+        this.kaydetmeIsleminde = false;
+      });
     } catch (error) {
       console.error('Veritabanına kaydetme hatası:', error);
       alert('Veritabanına kaydetme işlemi sırasında bir hata oluştu!');
