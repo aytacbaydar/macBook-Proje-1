@@ -1,5 +1,9 @@
 
 <?php
+// CORS ve Content-Type başlıkları (EN BAŞTA olmalı - herhangi bir çıktıdan önce)
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+
 // Hataları göster ve logla (geliştirme aşamasında)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -9,12 +13,8 @@ ini_set('error_log', '../../logs/pdf_errors.log');
 
 // Debugger
 error_log("konu_anlatim_kaydet.php çalıştırıldı: " . date('Y-m-d H:i:s'));
-
-// CORS başlıkları
-header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
-header("Content-Type: application/json; charset=UTF-8");
 
 // OPTIONS isteğini yönet (preflight)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -79,11 +79,28 @@ foreach ([$pdfDirectory, $cizimDirectory] as $directory) {
     }
 }
 
+// Loglama klasörünü oluştur
+$logDir = '../../logs';
+if (!file_exists($logDir)) {
+    if (!mkdir($logDir, 0777, true)) {
+        // Hata durumunda çıkış yapma, sadece logla
+        error_log("Log klasörü oluşturulamadı: $logDir");
+    } else {
+        error_log("Log klasörü oluşturuldu: $logDir");
+    }
+}
+
 try {
-    // Veritabanı bağlantısı
+    // Veritabanı bağlantısını test et
     error_log("Veritabanı bağlantısı kuruluyor...");
-    $conn = getConnection();
-    error_log("Veritabanı bağlantısı başarılı");
+    
+    try {
+        $conn = getConnection();
+        error_log("Veritabanı bağlantısı başarılı");
+    } catch (Exception $e) {
+        error_log("Veritabanı bağlantı hatası: " . $e->getMessage());
+        throw new Exception("Veritabanı bağlantısı kurulamadı: " . $e->getMessage());
+    }
     
     // Verileri al
     $pdfAdi = $_POST['pdf_adi'];
