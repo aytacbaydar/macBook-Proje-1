@@ -733,8 +733,15 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
 
         console.log('Veritabanına gönderiliyor...');
 
+        // API URL'ini düzelt - geliştirme ortamında çalışacak şekilde
+        const apiUrl = window.location.hostname.includes('replit.dev') || window.location.hostname.includes('localhost') ? 
+                      '/server/api/konu_anlatim_kaydet.php' : 
+                      'https://www.kimyaogreniyorum.com/server/api/konu_anlatim_kaydet.php';
+        
+        console.log('API isteği gönderiliyor:', apiUrl);
+        
         // HTTP POST isteği ile backend'e gönder
-        this.http.post('server/api/konu_anlatim_kaydet.php', formData).subscribe({
+        this.http.post(apiUrl, formData).subscribe({
           next: (response: any) => {
             console.log('Sunucu yanıtı:', response);
             if (response.success) {

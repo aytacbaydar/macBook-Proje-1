@@ -1,11 +1,14 @@
 
 <?php
-// Hataları dosyaya logla
-ini_set('display_errors', 0);
-ini_set('display_startup_errors', 0);
+// Hataları göster ve logla (geliştirme aşamasında)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 ini_set('log_errors', 1);
 ini_set('error_log', '../../logs/pdf_errors.log');
+
+// Debugger
+error_log("konu_anlatim_kaydet.php çalıştırıldı: " . date('Y-m-d H:i:s'));
 
 // CORS başlıkları
 header("Access-Control-Allow-Origin: *");
@@ -55,18 +58,32 @@ if (!isset($_POST['pdf_adi']) || !isset($_POST['ogrenci_grubu']) || !isset($_FIL
 $pdfDirectory = '../../dosyalar/pdf/';
 $cizimDirectory = '../../dosyalar/cizimler/';
 
+// Klasör yollarını doğrula ve mutlak yolları logla
+$pdfDirectoryAbs = realpath(dirname(__FILE__) . '/../../') . '/dosyalar/pdf/';
+$cizimDirectoryAbs = realpath(dirname(__FILE__) . '/../../') . '/dosyalar/cizimler/';
+
+error_log("PDF klasörü: $pdfDirectoryAbs");
+error_log("Çizim klasörü: $cizimDirectoryAbs");
+
 // Klasörleri oluştur
 foreach ([$pdfDirectory, $cizimDirectory] as $directory) {
     if (!file_exists($directory)) {
+        error_log("Klasör oluşturuluyor: $directory");
         if (!mkdir($directory, 0777, true)) {
-            errorResponse('Klasör oluşturulamadı: ' . $directory, 500);
+            $error = error_get_last();
+            errorResponse('Klasör oluşturulamadı: ' . $directory . ' - Hata: ' . ($error ? $error['message'] : 'Bilinmeyen hata'), 500);
         }
+        error_log("Klasör başarıyla oluşturuldu: $directory");
+    } else {
+        error_log("Klasör zaten var: $directory");
     }
 }
 
 try {
     // Veritabanı bağlantısı
+    error_log("Veritabanı bağlantısı kuruluyor...");
     $conn = getConnection();
+    error_log("Veritabanı bağlantısı başarılı");
     
     // Verileri al
     $pdfAdi = $_POST['pdf_adi'];
@@ -83,8 +100,11 @@ try {
     $pdfYolu = $pdfDirectory . $pdfDosyaAdi;
     
     if (!move_uploaded_file($_FILES['pdf_dosyasi']['tmp_name'], $pdfYolu)) {
-        errorResponse('PDF dosyası kaydedilemedi', 500);
+        $error = error_get_last();
+        error_log("PDF dosyası kaydedilirken hata: " . ($error ? $error['message'] : 'Bilinmeyen hata'));
+        errorResponse('PDF dosyası kaydedilemedi: ' . ($error ? $error['message'] : 'Bilinmeyen hata'), 500);
     }
+    error_log("PDF dosyası başarıyla kaydedildi: $pdfYolu");
     
     // Çizim dosyasını kaydet (varsa)
     $cizimDosyaAdi = null;
