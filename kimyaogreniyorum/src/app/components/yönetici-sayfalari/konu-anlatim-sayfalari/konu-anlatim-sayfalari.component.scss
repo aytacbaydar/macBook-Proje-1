@@ -290,3 +290,21 @@ body.sekil-ciz-aktif .drawing-canvas {
     margin: 0 5px;
   }
 }
+
+/* Resim yükleme stilleri */
+.yukleme-gostergesi {
+  color: #007bff;
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Resim düzenleme için aktif nesne stilleri */
+.canvas-container {
+  .canvas-controls {
+    opacity: 0.8 !important;
+  }
+}
+
+

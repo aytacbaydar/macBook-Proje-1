@@ -34,6 +34,9 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   geciciSekil: fabric.Object | null = null;
   baslangicX: number = 0;
   baslangicY: number = 0;
+  
+  // Resim yükleme özellikleri
+  resimYukleniyor: boolean = false;
 
   constructor(private http: HttpClient) { }
 
@@ -49,6 +52,67 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     }, 500);
   }
 
+  // Resim yükleme metotları
+  resimYukle(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    
+    if (input.files && input.files.length > 0) {
+      this.resimYukleniyor = true;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          // Resmi canvas'a ekle
+          const canvas = this.canvasInstances[this.currentPage - 1];
+          if (canvas) {
+            // Şekil ve kalem modlarını devre dışı bırak
+            this.sekilModu = false;
+            this.secilenSekil = '';
+            canvas.isDrawingMode = false;
+            
+            // Daha sonra yeniden boyutlandırılabilmesi için
+            const imgWidth = Math.min(img.width, canvas.width * 0.8);
+            const imgHeight = img.height * (imgWidth / img.width);
+            
+            // Yeni bir fabric.Image nesnesi oluştur
+            fabric.Image.fromURL(e.target?.result as string, (fabricImg) => {
+              fabricImg.set({
+                left: (canvas.width - imgWidth) / 2,
+                top: (canvas.height - imgHeight) / 2,
+                scaleX: imgWidth / fabricImg.width!,
+                scaleY: imgHeight / fabricImg.height!,
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
+              });
+              
+              canvas.add(fabricImg);
+              canvas.setActiveObject(fabricImg);
+              canvas.renderAll();
+              
+              this.resimYukleniyor = false;
+            });
+          } else {
+            console.error('Canvas bulunamadı');
+            this.resimYukleniyor = false;
+          }
+        };
+        img.src = e.target?.result as string;
+      };
+      
+      reader.onerror = () => {
+        console.error('Resim yükleme hatası');
+        this.resimYukleniyor = false;
+      };
+      
+      reader.readAsDataURL(input.files[0]);
+      
+      // Input değerini sıfırla, böylece aynı dosya tekrar seçilebilir
+      input.value = '';
+    }
+  }
+  
   // Şekil çizim metodları
   sekilSec(sekil: string): void {
     if (this.secilenSekil === sekil) {
