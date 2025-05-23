@@ -85,7 +85,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     canvas.isDrawingMode = false;
 
     // Yeni olayları ekle
-    canvas.on('mouse:down', (o: fabric.IEvent) => {
+    canvas.on('mouse:down', (o: fabric.TEvent) => {
       const pointer = canvas.getPointer(o.e);
       this.baslangicX = pointer.x;
       this.baslangicY = pointer.y;
@@ -97,7 +97,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       }
     });
 
-    canvas.on('mouse:move', (o: fabric.IEvent) => {
+    canvas.on('mouse:move', (o: fabric.TEvent) => {
       if (!this.geciciSekil) return;
       
       const pointer = canvas.getPointer(o.e);
@@ -658,73 +658,59 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     this.kaydetmeIsleminde = true;
 
     try {
-      // Eğer PDF dokümanı parametre olarak gelmemişse, indirPDF metodunu çağırmadan PDF oluştur
-      if (!pdfDoc) {
-        // PDF oluştur
-        const pdf = new jsPDF({
-          orientation: 'portrait',
-          unit: 'mm',
-          format: 'a4'
-        });
+      // PDF dokümanı oluştur
+      const pdf = pdfDoc || new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
 
-        // PDF'i Blob olarak al
-        const pdfBlob = pdf.output('blob');
+      // PDF'i Blob olarak al
+      const pdfBlob = pdf.output('blob');
+      const pdfAdi = `Ders Notu - ${this.secilenGrup}`;
+      const dosyaAdi = `ders_notu_${this.secilenGrup.replace(/\s+/g, '_')}.pdf`;
 
-        // Form verisi oluştur
-        const formData = new FormData();
-        formData.append('ogrenci_grubu', this.secilenGrup);
-        formData.append('pdf_dosyasi', pdfBlob, `ders_notu_${this.secilenGrup.replace(' ', '_')}.pdf`);
-        formData.append('sayfa_sayisi', this.totalPages.toString());
+      // Form verisi oluştur
+      const formData = new FormData();
+      formData.append('pdf_adi', pdfAdi);
+      formData.append('ogrenci_grubu', this.secilenGrup);
+      formData.append('pdf_dosyasi', pdfBlob, dosyaAdi);
+      formData.append('sayfa_sayisi', this.totalPages.toString());
 
-        // Her sayfanın görüntüsünü ekle
-        for (let i = 0; i < this.totalPages; i++) {
-          const canvas = this.canvasInstances[i];
-          if (canvas) {
-            const dataURL = canvas.toDataURL({
-              format: 'png',
-              quality: 0.8,
-              multiplier: 1.5
-            });
+      // Her sayfanın görüntüsünü ekle
+      for (let i = 0; i < this.totalPages; i++) {
+        const canvas = this.canvasInstances[i];
+        if (canvas) {
+          const dataURL = canvas.toDataURL({
+            format: 'png',
+            quality: 0.8,
+            multiplier: 1.5
+          });
 
-            // Base64 String'i Blob'a dönüştür
-            const blobData = this.dataURLtoBlob(dataURL);
-            formData.append(`sayfa_${i + 1}`, blobData, `sayfa_${i + 1}.png`);
-          }
+          // Base64 String'i Blob'a dönüştür
+          const blobData = this.dataURLtoBlob(dataURL);
+          formData.append(`cizim_verisi`, blobData, `cizim_sayfa_${i + 1}.png`);
+          formData.append(`sayfa_no`, (i + 1).toString());
         }
-
-        // HTTP POST isteği ile backend'e gönder
-        // this.http.post('server/api/konu_anlatim_kaydet.php', formData).subscribe({
-        //   next: (response: any) => {
-        //     alert('Konu anlatımı başarıyla veritabanına kaydedildi!');
-        //     this.kaydetmeIsleminde = false;
-        //   },
-        //   error: (error) => {
-        //     console.error('Kaydetme hatası:', error);
-        //     alert('Kaydetme işlemi sırasında bir hata oluştu!');
-        //     this.kaydetmeIsleminde = false;
-        //   }
-        // });
-
-        // Simülasyon
-        setTimeout(() => {
-          alert(`Konu anlatımı "${this.secilenGrup}" için veritabanına kaydedildi.`);
-          this.kaydetmeIsleminde = false;
-        }, 1500);
-      } else {
-        // Zaten oluşturulmuş PDF ile kaydet
-        const pdfBlob = pdfDoc.output('blob');
-
-        // Form verisi oluştur
-        const formData = new FormData();
-        formData.append('ogrenci_grubu', this.secilenGrup);
-        formData.append('pdf_dosyasi', pdfBlob, `ders_notu_${this.secilenGrup.replace(' ', '_')}.pdf`);
-
-        // Simülasyon
-        setTimeout(() => {
-          alert(`Konu anlatımı "${this.secilenGrup}" için veritabanına kaydedildi.`);
-          this.kaydetmeIsleminde = false;
-        }, 1500);
       }
+
+      // HTTP POST isteği ile backend'e gönder
+      this.http.post('server/api/konu_anlatim_kaydet.php', formData).subscribe({
+        next: (response: any) => {
+          if (response.success) {
+            alert(`Konu anlatımı "${this.secilenGrup}" için başarıyla veritabanına kaydedildi!`);
+          } else {
+            alert(`Kaydetme hatası: ${response.message || 'Bilinmeyen hata'}`);
+            console.error('Kaydetme yanıt hatası:', response);
+          }
+          this.kaydetmeIsleminde = false;
+        },
+        error: (error) => {
+          console.error('Kaydetme hatası:', error);
+          alert('Kaydetme işlemi sırasında bir hata oluştu!');
+          this.kaydetmeIsleminde = false;
+        }
+      });
     } catch (error) {
       console.error('Veritabanına kaydetme hatası:', error);
       alert('Veritabanına kaydetme işlemi sırasında bir hata oluştu!');
