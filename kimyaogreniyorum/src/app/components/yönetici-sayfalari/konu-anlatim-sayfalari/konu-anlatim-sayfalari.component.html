@@ -70,7 +70,7 @@
         <option *ngFor="let grup of ogrenciGruplari" [value]="grup">{{ grup }}</option>
       </select>
       <button (click)="veritabaninaKaydet()" [disabled]="!secilenGrup || kaydetmeIsleminde" class="btn-modern kaydet">
-        <i class="ikon">💾</i> {{ kaydetmeIsleminde ? 'Veritabanına Kaydediliyor...' : 'Veritabanına Kaydet' }}
+        <i class="ikon">💾</i> {{ kaydetmeIsleminde ? 'İşleniyor, lütfen bekleyin...' : 'Veritabanına Kaydet' }}
       </button>
       <button (click)="indirPDF()" [disabled]="kaydetmeIsleminde" class="btn-modern indir">
         <i class="ikon">📥</i> {{ kaydetmeIsleminde ? 'İşleniyor...' : 'PDF İndir' }}
