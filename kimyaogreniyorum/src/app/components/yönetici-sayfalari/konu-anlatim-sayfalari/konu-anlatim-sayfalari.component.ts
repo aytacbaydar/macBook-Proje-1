@@ -733,10 +733,8 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
 
         console.log('Veritabanına gönderiliyor...');
 
-        // API URL'ini düzelt - geliştirme ortamında çalışacak şekilde
-        const apiUrl = window.location.hostname.includes('replit.dev') || window.location.hostname.includes('localhost') ? 
-                      './server/api/konu_anlatim_kaydet.php' : 
-                      'https://www.kimyaogreniyorum.com/server/api/konu_anlatim_kaydet.php';
+        // API URL'ini düzelt - her zaman göreceli yol kullan
+        const apiUrl = './server/api/konu_anlatim_kaydet.php';
         
         console.log('API isteği gönderiliyor:', apiUrl);
         
@@ -744,24 +742,31 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
         const startTime = new Date().getTime();
         
         // HTTP POST isteği ile backend'e gönder (text olarak yanıt al)
-        this.http.post(apiUrl, formData, { responseType: 'text' }).subscribe({
-          next: (responseText: string) => {
+        this.http.post(apiUrl, formData, { 
+          responseType: 'text',
+          observe: 'response'
+        }).subscribe({
+          next: (response) => {
             const endTime = new Date().getTime();
-            console.log(`Sunucu yanıtı alındı (${endTime - startTime}ms)`, responseText);
+            console.log(`Sunucu yanıtı alındı (${endTime - startTime}ms) - Durum: ${response.status}`, response);
+            
+            const responseText = response.body || '';
             
             try {
               // Text yanıtını JSON'a dönüştür
-              const response = JSON.parse(responseText);
+              const responseData = JSON.parse(responseText);
               
-              if (response.success) {
+              if (responseData.success) {
                 alert(`Konu anlatımı "${this.secilenGrup}" için başarıyla veritabanına kaydedildi!`);
               } else {
-                alert(`Kaydetme hatası: ${response.message || 'Bilinmeyen hata'}`);
-                console.error('Kaydetme yanıt hatası:', response);
+                alert(`Kaydetme hatası: ${responseData.message || 'Bilinmeyen hata'}`);
+                console.error('Kaydetme yanıt hatası:', responseData);
               }
             } catch (jsonError) {
               console.error('JSON ayrıştırma hatası:', jsonError);
               console.log('Ham yanıt:', responseText);
+              console.log('Durum kodu:', response.status);
+              console.log('Başlıklar:', response.headers);
               alert('Sunucu yanıtı işlenirken bir hata oluştu. Lütfen konsolu kontrol edin.');
             }
             
@@ -774,6 +779,8 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
             
             if (error.error && typeof error.error === 'string') {
               errorMsg += error.error;
+            } else if (error.statusText) {
+              errorMsg += `${error.status} ${error.statusText}`;
             } else if (error.message) {
               errorMsg += error.message;
             } else {
@@ -781,6 +788,13 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
             }
             
             alert(errorMsg);
+            console.log('Tam hata detayları:', error);
+            
+            // Sunucu cevabını göstermeye çalış
+            if (error.error) {
+              console.log('Sunucu cevabı:', error.error);
+            }
+            
             this.kaydetmeIsleminde = false;
           }
         });
