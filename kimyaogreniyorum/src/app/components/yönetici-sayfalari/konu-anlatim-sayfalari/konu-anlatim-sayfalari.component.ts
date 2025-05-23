@@ -735,26 +735,52 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
 
         // API URL'ini düzelt - geliştirme ortamında çalışacak şekilde
         const apiUrl = window.location.hostname.includes('replit.dev') || window.location.hostname.includes('localhost') ? 
-                      '/server/api/konu_anlatim_kaydet.php' : 
+                      './server/api/konu_anlatim_kaydet.php' : 
                       'https://www.kimyaogreniyorum.com/server/api/konu_anlatim_kaydet.php';
         
         console.log('API isteği gönderiliyor:', apiUrl);
         
-        // HTTP POST isteği ile backend'e gönder
-        this.http.post(apiUrl, formData).subscribe({
-          next: (response: any) => {
-            console.log('Sunucu yanıtı:', response);
-            if (response.success) {
-              alert(`Konu anlatımı "${this.secilenGrup}" için başarıyla veritabanına kaydedildi!`);
-            } else {
-              alert(`Kaydetme hatası: ${response.message || 'Bilinmeyen hata'}`);
-              console.error('Kaydetme yanıt hatası:', response);
+        // İstek zamanlamasını takip et
+        const startTime = new Date().getTime();
+        
+        // HTTP POST isteği ile backend'e gönder (text olarak yanıt al)
+        this.http.post(apiUrl, formData, { responseType: 'text' }).subscribe({
+          next: (responseText: string) => {
+            const endTime = new Date().getTime();
+            console.log(`Sunucu yanıtı alındı (${endTime - startTime}ms)`, responseText);
+            
+            try {
+              // Text yanıtını JSON'a dönüştür
+              const response = JSON.parse(responseText);
+              
+              if (response.success) {
+                alert(`Konu anlatımı "${this.secilenGrup}" için başarıyla veritabanına kaydedildi!`);
+              } else {
+                alert(`Kaydetme hatası: ${response.message || 'Bilinmeyen hata'}`);
+                console.error('Kaydetme yanıt hatası:', response);
+              }
+            } catch (jsonError) {
+              console.error('JSON ayrıştırma hatası:', jsonError);
+              console.log('Ham yanıt:', responseText);
+              alert('Sunucu yanıtı işlenirken bir hata oluştu. Lütfen konsolu kontrol edin.');
             }
+            
             this.kaydetmeIsleminde = false;
           },
           error: (error) => {
             console.error('Kaydetme hatası:', error);
-            alert('Kaydetme işlemi sırasında bir hata oluştu: ' + (error.message || error));
+            // Daha detaylı hata mesajı
+            let errorMsg = 'Kaydetme işlemi sırasında bir hata oluştu: ';
+            
+            if (error.error && typeof error.error === 'string') {
+              errorMsg += error.error;
+            } else if (error.message) {
+              errorMsg += error.message;
+            } else {
+              errorMsg += JSON.stringify(error);
+            }
+            
+            alert(errorMsg);
             this.kaydetmeIsleminde = false;
           }
         });
