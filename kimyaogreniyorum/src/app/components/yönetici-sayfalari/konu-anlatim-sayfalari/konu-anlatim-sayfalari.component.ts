@@ -76,25 +76,24 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
             const imgHeight = img.height * (imgWidth / img.width);
             
             // Yeni bir fabric.Image nesnesi oluştur
-            fabric.Image.fromURL(e.target?.result as string, {
-              crossOrigin: 'anonymous',
-              onload: (fabricImg: fabric.Image) => {
-                fabricImg.set({
-                  left: (canvas.width - imgWidth) / 2,
-                  top: (canvas.height - imgHeight) / 2,
-                  scaleX: imgWidth / (fabricImg.width || 1),
-                  scaleY: imgHeight / (fabricImg.height || 1),
-                  selectable: true,
-                  hasControls: true,
-                  hasBorders: true
-                });
-                
-                canvas.add(fabricImg);
-                canvas.setActiveObject(fabricImg);
-                canvas.renderAll();
-                
-                this.resimYukleniyor = false;
-              }
+            fabric.Image.fromURL(e.target?.result as string, (fabricImg: fabric.Image) => {
+              fabricImg.set({
+                left: (canvas.width - imgWidth) / 2,
+                top: (canvas.height - imgHeight) / 2,
+                scaleX: imgWidth / (fabricImg.width || 1),
+                scaleY: imgHeight / (fabricImg.height || 1),
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
+              });
+              
+              canvas.add(fabricImg);
+              canvas.setActiveObject(fabricImg);
+              canvas.renderAll();
+              
+              this.resimYukleniyor = false;
+            }, {
+              crossOrigin: 'anonymous'
             });
           } else {
             console.error('Canvas bulunamadı');
