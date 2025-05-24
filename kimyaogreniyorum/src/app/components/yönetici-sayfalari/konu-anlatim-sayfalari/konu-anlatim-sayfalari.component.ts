@@ -76,7 +76,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
             const imgHeight = img.height * (imgWidth / img.width);
             
             // Yeni bir fabric.Image nesnesi oluştur
-            fabric.Image.fromURL(e.target?.result as string, (fabricImg: fabric.Image) => {
+            fabric.Image.fromURL(e.target?.result as string, (fabricImg) => {
               fabricImg.set({
                 left: (canvas.width - imgWidth) / 2,
                 top: (canvas.height - imgHeight) / 2,
