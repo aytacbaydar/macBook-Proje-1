@@ -1,0 +1,142 @@
+Veritabanına gönderiliyor...
+main-5WR6PUKR.js:922 API isteği gönderiliyor: ./server/api/konu_anlatim_kaydet.php
+main-5WR6PUKR.js:922 Sunucu yanıtı alındı (6055ms) - Durum: 200 i {headers: i, status: 200, statusText: 'OK', url: 'https://www.kimyaogreniyorum.com/server/api/konu_anlatim_kaydet.php', ok: true, …}
+main-5WR6PUKR.js:922 JSON ayrıştırma hatası: SyntaxError: Unexpected token '<', "
+<br />
+<b>"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at Object.next (main-5WR6PUKR.js:922:11008)
+    at U1.next (main-5WR6PUKR.js:3:3112)
+    at gu._next (main-5WR6PUKR.js:3:2795)
+    at gu.next (main-5WR6PUKR.js:3:2522)
+    at main-5WR6PUKR.js:3:16853
+    at $1._next (main-5WR6PUKR.js:3:5428)
+    at $1.next (main-5WR6PUKR.js:3:2522)
+    at Gn.subscribe._ (main-5WR6PUKR.js:3:15973)
+    at $1._next (main-5WR6PUKR.js:3:5428)
+next @ main-5WR6PUKR.js:922
+next @ main-5WR6PUKR.js:3
+_next @ main-5WR6PUKR.js:3
+next @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+_next @ main-5WR6PUKR.js:3
+next @ main-5WR6PUKR.js:3
+Gn.subscribe._ @ main-5WR6PUKR.js:3
+_next @ main-5WR6PUKR.js:3
+next @ main-5WR6PUKR.js:3
+Gn.subscribe.r @ main-5WR6PUKR.js:3
+_next @ main-5WR6PUKR.js:3
+next @ main-5WR6PUKR.js:3
+u @ main-5WR6PUKR.js:8
+invokeTask @ polyfills-FFHMD2TL.js:1
+onInvokeTask @ main-5WR6PUKR.js:7
+invokeTask @ polyfills-FFHMD2TL.js:1
+runTask @ polyfills-FFHMD2TL.js:1
+invokeTask @ polyfills-FFHMD2TL.js:1
+I @ polyfills-FFHMD2TL.js:1
+H @ polyfills-FFHMD2TL.js:1
+U @ polyfills-FFHMD2TL.js:1
+XMLHttpRequest.send
+k @ polyfills-FFHMD2TL.js:1
+scheduleTask @ polyfills-FFHMD2TL.js:1
+onScheduleTask @ polyfills-FFHMD2TL.js:1
+scheduleTask @ polyfills-FFHMD2TL.js:1
+scheduleTask @ polyfills-FFHMD2TL.js:1
+scheduleMacroTask @ polyfills-FFHMD2TL.js:1
+Ge @ polyfills-FFHMD2TL.js:1
+(anonymous) @ polyfills-FFHMD2TL.js:1
+t.<computed> @ polyfills-FFHMD2TL.js:1
+(anonymous) @ main-5WR6PUKR.js:8
+_trySubscribe @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+pu @ main-5WR6PUKR.js:3
+subscribe @ main-5WR6PUKR.js:3
+t.subscribe.o @ main-5WR6PUKR.js:3
+_next @ main-5WR6PUKR.js:3
+next @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+_trySubscribe @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+pu @ main-5WR6PUKR.js:3
+subscribe @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+pu @ main-5WR6PUKR.js:3
+subscribe @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+pu @ main-5WR6PUKR.js:3
+subscribe @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+pu @ main-5WR6PUKR.js:3
+subscribe @ main-5WR6PUKR.js:3
+m @ main-5WR6PUKR.js:3
+d @ main-5WR6PUKR.js:3
+_next @ main-5WR6PUKR.js:3
+next @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+_trySubscribe @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+pu @ main-5WR6PUKR.js:3
+subscribe @ main-5WR6PUKR.js:3
+FE @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+pu @ main-5WR6PUKR.js:3
+subscribe @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:3
+pu @ main-5WR6PUKR.js:3
+subscribe @ main-5WR6PUKR.js:3
+(anonymous) @ main-5WR6PUKR.js:922
+invoke @ polyfills-FFHMD2TL.js:1
+onInvoke @ main-5WR6PUKR.js:7
+invoke @ polyfills-FFHMD2TL.js:1
+run @ polyfills-FFHMD2TL.js:1
+(anonymous) @ polyfills-FFHMD2TL.js:2
+invokeTask @ polyfills-FFHMD2TL.js:1
+onInvokeTask @ main-5WR6PUKR.js:7
+invokeTask @ polyfills-FFHMD2TL.js:1
+runTask @ polyfills-FFHMD2TL.js:1
+$ @ polyfills-FFHMD2TL.js:1
+invokeTask @ polyfills-FFHMD2TL.js:1
+E.g.useG.invoke @ polyfills-FFHMD2TL.js:1
+T._.args.<computed> @ polyfills-FFHMD2TL.js:1
+setTimeout
+T @ polyfills-FFHMD2TL.js:1
+scheduleTask @ polyfills-FFHMD2TL.js:1
+onScheduleTask @ polyfills-FFHMD2TL.js:1
+scheduleTask @ polyfills-FFHMD2TL.js:1
+scheduleTask @ polyfills-FFHMD2TL.js:1
+scheduleMacroTask @ polyfills-FFHMD2TL.js:1
+Ge @ polyfills-FFHMD2TL.js:1
+(anonymous) @ polyfills-FFHMD2TL.js:1
+t.<computed> @ polyfills-FFHMD2TL.js:1
+s @ main-5WR6PUKR.js:922
+(anonymous) @ main-5WR6PUKR.js:922
+Z @ polyfills-FFHMD2TL.js:2
+veritabaninaKaydet @ main-5WR6PUKR.js:922
+(anonymous) @ main-5WR6PUKR.js:922
+xD @ main-5WR6PUKR.js:7
+n @ main-5WR6PUKR.js:7
+(anonymous) @ main-5WR6PUKR.js:7
+invokeTask @ polyfills-FFHMD2TL.js:1
+onInvokeTask @ main-5WR6PUKR.js:7
+invokeTask @ polyfills-FFHMD2TL.js:1
+runTask @ polyfills-FFHMD2TL.js:1
+invokeTask @ polyfills-FFHMD2TL.js:1
+I @ polyfills-FFHMD2TL.js:1
+H @ polyfills-FFHMD2TL.js:1
+U @ polyfills-FFHMD2TL.js:1Understand this error
+main-5WR6PUKR.js:922 Ham yanıt: 
+<br />
+<b>Fatal error</b>:  Cannot redeclare errorResponse() (previously declared in /var/www/vhosts/kimyaogreniyorum.com/httpdocs/server/api/konu_anlatim_kaydet.php:28) in <b>/var/www/vhosts/kimyaogreniyorum.com/httpdocs/server/config.php</b> on line <b>97</b><br />
+
+main-5WR6PUKR.js:922 Durum kodu: 200
+main-5WR6PUKR.js:922 Başlıklar: i {headers: undefined, normalizedNames: Map(0), lazyUpdate: null, lazyInit: ƒ}
