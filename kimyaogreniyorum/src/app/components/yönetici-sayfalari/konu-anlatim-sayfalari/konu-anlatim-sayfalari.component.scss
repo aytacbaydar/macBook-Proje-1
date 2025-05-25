@@ -1,4 +1,3 @@
-
 .konu-anlatim-container {
   display: flex;
   flex-direction: column;
@@ -48,25 +47,103 @@
 }
 
 .renk-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 4px;
-  margin: 0 2px;
-  border: 2px solid transparent;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin: 0 4px;
   cursor: pointer;
-  transition: all 0.2s;
+  border: 2px solid #ddd;
 }
 
 .renk-btn.aktif {
-  transform: scale(1.1);
-  border-color: #333;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  border-color: #666;
+  transform: scale(1.2);
 }
 
-.renk-btn.kirmizi { background-color: #FF0000; }
-.renk-btn.mavi { background-color: #0000FF; }
-.renk-btn.yesil { background-color: #00AA00; }
-.renk-btn.siyah { background-color: #000000; }
+.renk-btn.kirmizi {
+  background-color: #FF0000;
+}
+
+.renk-btn.mavi {
+  background-color: #0000FF;
+}
+
+.renk-btn.yesil {
+  background-color: #00AA00;
+}
+
+.renk-btn.siyah {
+  background-color: #000000;
+}
+
+// Fosforlu kalem stilleri
+.fosforlu-btn {
+  position: relative;
+}
+
+.fosforlu-btn.aktif {
+  background-color: #f0f0f0;
+}
+
+.fosforlu-btn.aktif:after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 3px;
+  background-color: #ffff00;
+  border-radius: 2px;
+}
+
+.fosforlu-renkler {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+.fosforlu-renk-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  margin: 0 4px;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.fosforlu-renk-btn.aktif {
+  border-color: #666;
+  transform: scale(1.1);
+}
+
+.fosforlu-renk-btn.sari {
+  background-color: rgba(255, 255, 0, 0.5);
+}
+
+.fosforlu-renk-btn.yesil {
+  background-color: rgba(0, 255, 0, 0.5);
+}
+
+.fosforlu-renk-btn.pembe {
+  background-color: rgba(255, 0, 255, 0.5);
+}
+
+.fosforlu-renk-btn.mavi {
+  background-color: rgba(0, 255, 255, 0.5);
+}
+
+.fosforlu-renk-btn.turuncu {
+  background-color: rgba(255, 165, 0, 0.5);
+}
+
+// Fosforlu kalem imleç stili
+body.fosforlu-kalem-aktif .drawing-canvas {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="yellow" stroke="black" stroke-width="1" d="M7,14l-5.5,5.5 0.7,0.7 5.5,-5.5 -0.7,-0.7z M22,2l-3,3c-1,-1 -2,-1 -3,0l-13,13c-0.5,0.5 -0.5,1.5 0,2l1,1c0.5,0.5 1.5,0.5 2,0l13,-13c1,-1 1,-2 0,-3l3,-3 -0.7,-0.7z"/></svg>') 0 24, auto;
+}
 
 .arac-grup-label {
   font-weight: bold;
@@ -306,5 +383,3 @@ body.sekil-ciz-aktif .drawing-canvas {
     opacity: 0.8 !important;
   }
 }
-
-
