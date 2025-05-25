@@ -25,8 +25,17 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   kalemKalinlikSecenekleri: number[] = [2, 4, 8, 12, 16]; // İnce, normal, kalın, çok kalın, ekstra kalın
   cizilebilir: boolean = true;
   silgiModu: boolean = false;
+  fosforluKalemModu: boolean = false;
   oncekiKalemRengi: string = '#000000';
   oncekiKalemKalinligi: number = 2;
+  fosforluRenkler: {[key: string]: string} = {
+    'sari': '#ffff0080', // Sarı fosforlu
+    'yesil': '#00ff0080', // Yeşil fosforlu
+    'pembe': '#ff00ff80', // Pembe fosforlu
+    'mavi': '#00ffff80', // Mavi fosforlu
+    'turuncu': '#ffa50080' // Turuncu fosforlu
+  };
+  secilenFosforluRenk: string = '#ffff0080'; // Varsayılan sarı fosforlu
   
   // Şekil çizim değişkenleri
   sekilModu: boolean = false;
@@ -129,10 +138,11 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       this.secilenSekil = sekil;
       this.sekilModu = true;
       this.silgiModu = false;
+      this.fosforluKalemModu = false;
       this.cizilebilir = false;
 
-      // Kalem ve silgi modlarını kapat, şekil çizim modunu etkinleştir
-      document.body.classList.remove('kalem-aktif', 'silgi-aktif', 'el-imleci-aktif');
+      // Kalem, silgi ve fosforlu kalem modlarını kapat, şekil çizim modunu etkinleştir
+      document.body.classList.remove('kalem-aktif', 'silgi-aktif', 'el-imleci-aktif', 'fosforlu-kalem-aktif');
       document.body.classList.add('sekil-ciz-aktif');
 
       // Canvas olaylarını ayarla
@@ -535,18 +545,21 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     if (this.cizilebilir) {
       if (this.silgiModu) {
         document.body.classList.add('silgi-aktif');
-        document.body.classList.remove('kalem-aktif', 'el-imleci-aktif', 'sekil-ciz-aktif');
+        document.body.classList.remove('kalem-aktif', 'el-imleci-aktif', 'sekil-ciz-aktif', 'fosforlu-kalem-aktif');
+      } else if (this.fosforluKalemModu) {
+        document.body.classList.add('fosforlu-kalem-aktif');
+        document.body.classList.remove('kalem-aktif', 'silgi-aktif', 'el-imleci-aktif', 'sekil-ciz-aktif');
       } else {
         document.body.classList.add('kalem-aktif');
-        document.body.classList.remove('silgi-aktif', 'el-imleci-aktif', 'sekil-ciz-aktif');
+        document.body.classList.remove('silgi-aktif', 'el-imleci-aktif', 'sekil-ciz-aktif', 'fosforlu-kalem-aktif');
       }
     } else {
-      // Kalem, silgi ve şekil modlarını kapat, el imleci kullan
-      document.body.classList.remove('kalem-aktif', 'silgi-aktif', 'sekil-ciz-aktif');
+      // Kalem, silgi, fosforlu ve şekil modlarını kapat, el imleci kullan
+      document.body.classList.remove('kalem-aktif', 'silgi-aktif', 'sekil-ciz-aktif', 'fosforlu-kalem-aktif');
       document.body.classList.add('el-imleci-aktif');
     }
 
-    console.log('Çizim modu değiştirildi:', this.cizilebilir ? 'Kalem/Silgi Aktif' : 'El İmleci Aktif');
+    console.log('Çizim modu değiştirildi:', this.cizilebilir ? 'Kalem/Silgi/Fosforlu Aktif' : 'El İmleci Aktif');
   }
 
   ayarlaKalemOzellikleri(sayfaNo?: number): void {
@@ -585,6 +598,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
     this.sekilModu = false;
     this.secilenSekil = '';
     this.cizilebilir = true;
+    this.fosforluKalemModu = false;
     
     if (!this.silgiModu) {
       this.silgiModu = true;
@@ -599,7 +613,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
 
       // İmleç stilini güncelle
       document.body.classList.add('silgi-aktif');
-      document.body.classList.remove('kalem-aktif', 'el-imleci-aktif', 'sekil-ciz-aktif');
+      document.body.classList.remove('kalem-aktif', 'el-imleci-aktif', 'sekil-ciz-aktif', 'fosforlu-kalem-aktif');
       
       // Canvas'ı silgi moduna getir
       const canvas = this.canvasInstances[this.currentPage - 1];
@@ -618,6 +632,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
   kalemModunuAc(): void {
     // Silgi, şekil veya başka bir moddan kalem moduna geçiş
     this.silgiModu = false;
+    this.fosforluKalemModu = false;
     this.sekilModu = false;
     this.secilenSekil = '';
     this.cizilebilir = true;
@@ -629,7 +644,7 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
 
     // İmleç stilini güncelle
     document.body.classList.add('kalem-aktif');
-    document.body.classList.remove('silgi-aktif', 'el-imleci-aktif', 'sekil-ciz-aktif');
+    document.body.classList.remove('silgi-aktif', 'el-imleci-aktif', 'sekil-ciz-aktif', 'fosforlu-kalem-aktif');
     
     // Canvas'ı kalem moduna getir
     const canvas = this.canvasInstances[this.currentPage - 1];
@@ -641,6 +656,53 @@ export class KonuAnlatimSayfalariComponent implements OnInit, AfterViewInit {
       
       // Çizim modunu aktifleştir
       canvas.isDrawingMode = true;
+    }
+  }
+  
+  fosforluKalemModunuAc(renk?: string): void {
+    // Diğer modlardan fosforlu kalem moduna geçiş
+    this.silgiModu = false;
+    this.sekilModu = false;
+    this.secilenSekil = '';
+    this.cizilebilir = true;
+    this.fosforluKalemModu = true;
+    
+    // Önceki kalem ayarlarını kaydet
+    if (!this.fosforluKalemModu) {
+      this.oncekiKalemRengi = this.kalemRengi;
+      this.oncekiKalemKalinligi = this.kalemKalinligi;
+    }
+    
+    // Renk belirtilmişse o rengi kullan
+    if (renk && this.fosforluRenkler[renk]) {
+      this.secilenFosforluRenk = this.fosforluRenkler[renk];
+    }
+    
+    // Fosforlu kalem ayarlarını uygula
+    this.kalemRengi = this.secilenFosforluRenk;
+    this.kalemKalinligi = 16; // Fosforlu kalem için daha kalın
+    this.ayarlaKalemOzellikleri();
+    
+    // İmleç stilini güncelle
+    document.body.classList.add('fosforlu-kalem-aktif');
+    document.body.classList.remove('kalem-aktif', 'silgi-aktif', 'el-imleci-aktif', 'sekil-ciz-aktif');
+    
+    // Canvas'ı fosforlu kalem moduna getir
+    const canvas = this.canvasInstances[this.currentPage - 1];
+    if (canvas) {
+      // Gerekli olayları temizle
+      canvas.off('mouse:down');
+      canvas.off('mouse:move');
+      canvas.off('mouse:up');
+      
+      // Çizim modunu aktifleştir
+      canvas.isDrawingMode = true;
+      
+      // Transparency için özel brush ayarları
+      if (canvas.freeDrawingBrush) {
+        canvas.freeDrawingBrush.color = this.secilenFosforluRenk;
+        canvas.freeDrawingBrush.width = 16;
+      }
     }
   }
 
